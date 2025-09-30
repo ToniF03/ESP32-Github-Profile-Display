@@ -1,0 +1,8 @@
+#include "icons_16x16.h"
+#include "icons_24x24.h"
+#include "icons_32x32.h"
+#include "icons_64x64.h"
+#include "icons_96x96.h"
+#include "icons_128x128.h"
+#include "icons_160x160.h"
+#include "icons_196x196.h"
