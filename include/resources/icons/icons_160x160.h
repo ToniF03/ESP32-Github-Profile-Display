@@ -42,4 +42,10 @@
 #include "160x160/battery_full_90deg_160x160.h"
 #include "160x160/error_icon_160x160.h"
 #include "160x160/warning_icon_160x160.h"
+#include "160x160/wifi_160x160.h"
+#include "160x160/wifi_1_bar_160x160.h"
+#include "160x160/wifi_2_bar_160x160.h"
+#include "160x160/wifi_3_bar_160x160.h"
+#include "160x160/wifi_off_160x160.h"
+#include "160x160/wifi_x_160x160.h"
 #endif

@@ -42,4 +42,10 @@
 #include "24x24/battery_full_90deg_24x24.h"
 #include "24x24/error_icon_24x24.h"
 #include "24x24/warning_icon_24x24.h"
+#include "24x24/wifi_1_bar_24x24.h"
+#include "24x24/wifi_24x24.h"
+#include "24x24/wifi_2_bar_24x24.h"
+#include "24x24/wifi_3_bar_24x24.h"
+#include "24x24/wifi_off_24x24.h"
+#include "24x24/wifi_x_24x24.h"
 #endif
