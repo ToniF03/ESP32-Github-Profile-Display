@@ -10,6 +10,7 @@
             "includePath": [
                 "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/include",
                 "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/src",
+                "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/GxEPD2/src",
                 "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/Adafruit GFX Library",
                 "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/Adafruit BusIO",
@@ -241,7 +242,6 @@
                 "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                 "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
                 "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                 ""
@@ -251,6 +251,7 @@
                 "path": [
                     "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/include",
                     "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/src",
+                    "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/GxEPD2/src",
                     "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/Adafruit GFX Library",
                     "C:/Users/ToniFey/Documents/PlatformIO/Projects/ESP32-Github-Profile-Display/.pio/libdeps/esp32dev/Adafruit BusIO",
@@ -482,7 +483,6 @@
                     "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                     "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
                     "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                    "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "C:/Users/ToniFey/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                     ""

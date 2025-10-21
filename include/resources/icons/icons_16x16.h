@@ -48,4 +48,5 @@
 #include "16x16/wifi_3_bar_16x16.h"
 #include "16x16/wifi_off_16x16.h"
 #include "16x16/wifi_x_16x16.h"
+#include "16x16/sy_github_16x16.h"
 #endif

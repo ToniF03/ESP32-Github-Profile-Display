@@ -48,4 +48,5 @@
 #include "32x32/wifi_3_bar_32x32.h"
 #include "32x32/wifi_off_32x32.h"
 #include "32x32/wifi_x_32x32.h"
+#include "32x32/sy_github_32x32.h"
 #endif

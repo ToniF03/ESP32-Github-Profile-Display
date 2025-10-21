@@ -48,4 +48,5 @@
 #include "24x24/wifi_3_bar_24x24.h"
 #include "24x24/wifi_off_24x24.h"
 #include "24x24/wifi_x_24x24.h"
+#include "24x24/sy_github_24x24.h"
 #endif

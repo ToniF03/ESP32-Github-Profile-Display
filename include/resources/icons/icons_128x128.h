@@ -48,4 +48,5 @@
 #include "128x128/wifi_3_bar_128x128.h"
 #include "128x128/wifi_off_128x128.h"
 #include "128x128/wifi_x_128x128.h"
+#include "128x128/sy_github_128x128.h"
 #endif

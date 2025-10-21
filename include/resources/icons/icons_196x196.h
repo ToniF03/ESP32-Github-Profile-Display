@@ -48,4 +48,5 @@
 #include "196x196/wifi_3_bar_196x196.h"
 #include "196x196/wifi_off_196x196.h"
 #include "196x196/wifi_x_196x196.h"
+#include "196x196/sy_github_196x196.h"
 #endif

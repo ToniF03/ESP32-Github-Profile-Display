@@ -48,4 +48,5 @@
 #include "48x48/wifi_48x48.h"
 #include "48x48/wifi_off_48x48.h"
 #include "48x48/wifi_x_48x48.h"
+#include "48x48/sy_github_48x48.h"
 #endif

@@ -48,4 +48,5 @@
 #include "96x96/wifi_96x96.h"
 #include "96x96/wifi_off_96x96.h"
 #include "96x96/wifi_x_96x96.h"
+#include "96x96/sy_github_96x96.h"
 #endif

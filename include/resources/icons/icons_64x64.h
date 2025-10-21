@@ -48,4 +48,5 @@
 #include "64x64/wifi_64x64.h"
 #include "64x64/wifi_off_64x64.h"
 #include "64x64/wifi_x_64x64.h"
+#include "64x64/sy_github_64x64.h"
 #endif
