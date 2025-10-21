@@ -8,8 +8,8 @@
 #define DC 17
 #define CS 5
 
-#define WIFI_SSID "Vodafone-05FD"
-#define WIFI_PASSWORD "12803ujioasud091op2k"
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 
 /*
  * BSY  ->  4
