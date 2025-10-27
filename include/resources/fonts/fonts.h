@@ -14,4 +14,4 @@
 #include "Roboto_Regular/Roboto_Regular_22pt8b.h"
 #include "Roboto_Regular/Roboto_Regular_24pt8b.h"
 #include "Roboto_Regular/Roboto_Regular_26pt8b.h"
-#include "Roboto_Regular/Roboto_Regular_48pt8b_temperature.h"
+#include "Roboto_Regular/Roboto_Regular_48pt8b.h"
