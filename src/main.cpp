@@ -325,8 +325,6 @@ String receiveChartInformation(String username)
             timeinfo.tm_mon + 1,
             timeinfo.tm_mday);
 
-    // TODO Make dynamic date range
-    Serial.println(String(1900 + timeinfo.tm_year) + "-" + String(timeinfo.tm_mon) + "-" + String(timeinfo.tm_mday));
     String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + username + "\\\") { contributionsCollection(from: \\\"" + timeStr2 + "T00:00:00Z\\\", to: \\\"" + timeStr + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount color } } } } } }\"}";
 
     int httpCode = https.POST(graphQLQuery); // Perform the GET request
@@ -418,11 +416,7 @@ void setup()
     Serial.println(error.c_str());
   }
 
-  Serial.print("Follower: ");
-  Serial.println(doc["followers"].as<String>());
   followers = doc["followers"].as<int>();
-  Serial.print("Following: ");
-  Serial.println(doc["following"].as<String>());
   following = doc["following"].as<int>();
   GITHUB_NAME = doc["name"].as<String>();
 
@@ -550,10 +544,7 @@ void setup()
       for (int day = 0; day < 7; day++)
       {
         if (week == 52 && day > weekday)
-        {
-          Serial.println("Breaking at week 52 day " + String(day));
           break;
-        }
         int index = week * 7 + day;
         if (index >= 371)
           break;
