@@ -540,7 +540,7 @@ void setup()
     display.setCursor(370, 107 + 0.6 * tbh);
     display.print(maxContributions);
     display.setFont(&Roboto_Regular_11pt8b);
-    display.getTextBounds("Max in a Day", 0, 107 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
+    display.getTextBounds("Most in a Day", 0, 107 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
     display.setCursor(370, tby + 1.75*tbh + 5);
     display.print("Most in a Day");
 
