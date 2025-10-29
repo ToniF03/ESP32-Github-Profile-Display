@@ -511,37 +511,37 @@ void setup()
     display.drawBitmap(770 - tbw, 464, wi_time_1_16x16, 16, 16, GxEPD_WHITE);
 
     // Print total contributions
-    fillGrayRoundRect(20, 20, 15, 133, 3, 3);
+    fillGrayRoundRect(20, 20, 15, 176, 3, 3);
     display.setFont(&Roboto_Regular_48pt8b);
-    display.getTextBounds(String(contributions), 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(50, 120);
+    display.getTextBounds(String(contributions), 50, 216, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx, tby);
     display.print(contributions);
 
-    display.setFont(&Roboto_Regular_11pt8b);
-    display.getTextBounds("Contributions in the last year", 0, tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(50, 65 + tby + tbh + 10);
+    display.setFont(&Roboto_Regular_8pt8b);
+    display.getTextBounds("Contributions in the last year", tbx, 0.75 * tby + tbh, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(55, tby + tbh + 10);
     display.print("Contributions in the last year");
 
     // Print longest streak
-    fillGrayRoundRect(340, 20, 15, 61, 3, 3);
+    fillGrayRoundRect(350, 20, 15, 61, 3, 3);
     display.setFont(&Roboto_Regular_20pt8b);
     display.getTextBounds(String(longestStreak), 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(370, 35 + 0.6 * tbh);
+    display.setCursor(380, 35 + 0.6 * tbh);
     display.print(longestStreak);
-    display.setFont(&Roboto_Regular_11pt8b);
+    display.setFont(&Roboto_Regular_8pt8b);
     display.getTextBounds("Longest Streak", 0, 35 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(370, tby + 1.75 * tbh + 5);
+    display.setCursor(380, tby + 1.75 * tbh + 5);
     display.print("Longest Streak");
 
     // Print max contributions in a day
-    fillGrayRoundRect(340, 92, 15, 61, 3, 3);
+    fillGrayRoundRect(350, 92, 15, 61, 3, 3);
     display.setFont(&Roboto_Regular_20pt8b);
     display.getTextBounds(String(maxContributions), 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(370, 107 + 0.6 * tbh);
+    display.setCursor(380, 107 + 0.6 * tbh);
     display.print(maxContributions);
-    display.setFont(&Roboto_Regular_11pt8b);
+    display.setFont(&Roboto_Regular_8pt8b);
     display.getTextBounds("Most in a Day", 0, 107 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(370, tby + 1.75*tbh + 5);
+    display.setCursor(380, tby + 1.75*tbh + 5);
     display.print("Most in a Day");
 
     // Draw contribution graph
