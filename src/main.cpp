@@ -389,7 +389,7 @@ void setup()
   }
   if (tries == 10)
   {
-    Serial.println(" Failed to obtain time");
+    Serial.println("Failed to obtain time");
     failedConnection();
   }
   Serial.println();
@@ -512,30 +512,32 @@ void setup()
     display.print(contributions);
 
     display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Contributions in the last year", tbx, 0.75 * tby + tbh, &tbx, &tby, &tbw, &tbh);
+    display.getTextBounds("Contributions in the last year", tbx, 0.66 * tby + tbh, &tbx, &tby, &tbw, &tbh);
     display.setCursor(55, tby + tbh + 10);
     display.print("Contributions in the last year");
 
     // Print longest streak
-    fillGrayRoundRect(350, 20, 15, 61, 3, 3);
-    display.setFont(&Roboto_Regular_20pt8b);
-    display.getTextBounds(String(longestStreak), 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(380, 35 + 0.6 * tbh);
+    fillGrayRoundRect(350, 20, 15, 83, 3, 3);
+    display.setFont(&Roboto_Regular_24pt8b);
+    display.getTextBounds(String(longestStreak), 380, 55, &tbx, &tby, &tbw, &tbh);
+    tby += 1.5 * tbh;
+    display.setCursor(tbx, tby);
     display.print(longestStreak);
     display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Longest Streak", 0, 35 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(380, tby + 1.75 * tbh + 5);
+    display.getTextBounds("Longest Streak", tbx, tby, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Longest Streak");
 
     // Print max contributions in a day
-    fillGrayRoundRect(350, 92, 15, 61, 3, 3);
-    display.setFont(&Roboto_Regular_20pt8b);
-    display.getTextBounds(String(maxContributions), 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(380, 107 + 0.6 * tbh);
+    fillGrayRoundRect(350, 113, 15, 83, 3, 3);
+    display.setFont(&Roboto_Regular_24pt8b);
+    display.getTextBounds(String(maxContributions), 380, 148, &tbx, &tby, &tbw, &tbh);
+    tby += 1.5 * tbh;
+    display.setCursor(tbx, tby);
     display.print(maxContributions);
     display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Most in a Day", 0, 107 + 0.6 * tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(380, tby + 1.75*tbh + 5);
+    display.getTextBounds("Most in a Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Most in a Day");
 
     // Draw contribution graph
