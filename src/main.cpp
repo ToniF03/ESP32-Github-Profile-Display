@@ -436,7 +436,7 @@ void setup()
   float avgContributions = 0.0;
 
   contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
-  for (int i = 0; i < 371; i++)
+  for (int i = 0; i <= 371; i++)
   {
     if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() == 0)
       commits[i] = 209;
@@ -468,11 +468,11 @@ void setup()
     }
   }
 
-  avgContributions = (daysWithContributions > 0) ? (float)contributions / daysWithContributions : 0.0;
+  avgContributions = (float)contributions / (365 + weekday);
   avgContributions = roundf(avgContributions * 100) / 100;
 
   int currentStreak = 0;
-  for (int i = 370 - (7 - weekday); i >= 0; i--)
+  for (int i = 371 - (7 - weekday); i >= 0; i--)
   {
     if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() > 0)
     {
