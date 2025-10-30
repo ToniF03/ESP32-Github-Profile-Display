@@ -433,7 +433,7 @@ void setup()
   int streak = 0;
   int maxContributions = 0;
   int daysWithContributions = 0;
-
+  float avgContributions = 0.0;
 
   contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
   for (int i = 0; i < 371; i++)
@@ -467,6 +467,9 @@ void setup()
       daysWithContributions++;
     }
   }
+
+  avgContributions = (daysWithContributions > 0) ? (float)contributions / daysWithContributions : 0.0;
+  avgContributions = roundf(avgContributions * 100) / 100;
 
   int currentStreak = 0;
   for (int i = 370 - (7 - weekday); i >= 0; i--)
@@ -539,6 +542,18 @@ void setup()
     display.getTextBounds("Most in a Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
     display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Most in a Day");
+
+    // Print current streak
+    fillGrayRoundRect(505, 20, 15, 83, 3, 3);
+    display.setFont(&Roboto_Regular_24pt8b);
+    display.getTextBounds(String(currentStreak), 525, 148, &tbx, &tby, &tbw, &tbh);
+    tby += 1.5 * tbh;
+    display.setCursor(tbx, tby);
+    display.print(maxContributions);
+    display.setFont(&Roboto_Regular_8pt8b);
+    display.getTextBounds("Current Streak", tbx, tby, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx, tby + 1.875 * tbh + 5);
+    display.print("Current Streak");
 
     // Draw contribution graph
     for (int week = 0; week < 53; week++)
