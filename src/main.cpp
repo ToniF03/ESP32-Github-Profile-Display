@@ -555,6 +555,18 @@ void setup()
     display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Current Streak");
 
+    // Print average contributions
+    fillGrayRoundRect(505, 113, 15, 83, 3, 3);
+    display.setFont(&Roboto_Regular_24pt8b);
+    display.getTextBounds(String(avgContributions), 525, 148, &tbx, &tby, &tbw, &tbh);
+    tby += 1.5 * tbh;
+    display.setCursor(tbx, tby);
+    display.print(maxContributions);
+    display.setFont(&Roboto_Regular_8pt8b);
+    display.getTextBounds("Average per Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx, tby + 1.875 * tbh + 5);
+    display.print("Average per Day");
+
     // Draw contribution graph
     for (int week = 0; week < 53; week++)
     {
