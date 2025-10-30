@@ -544,24 +544,24 @@ void setup()
     display.print("Most in a Day");
 
     // Print current streak
-    fillGrayRoundRect(505, 20, 15, 83, 3, 3);
+    fillGrayRoundRect(555, 20, 15, 83, 3, 3);
     display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(currentStreak), 525, 148, &tbx, &tby, &tbw, &tbh);
+    display.getTextBounds(String(currentStreak), 575, 55, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
     display.setCursor(tbx, tby);
-    display.print(maxContributions);
+    display.print(currentStreak);
     display.setFont(&Roboto_Regular_8pt8b);
     display.getTextBounds("Current Streak", tbx, tby, &tbx, &tby, &tbw, &tbh);
     display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Current Streak");
 
     // Print average contributions
-    fillGrayRoundRect(505, 113, 15, 83, 3, 3);
+    fillGrayRoundRect(555, 113, 15, 83, 3, 3);
     display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(avgContributions), 525, 148, &tbx, &tby, &tbw, &tbh);
+    display.getTextBounds(String(avgContributions), 575, 148, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
     display.setCursor(tbx, tby);
-    display.print(maxContributions);
+    display.print(avgContributions);
     display.setFont(&Roboto_Regular_8pt8b);
     display.getTextBounds("Average per Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
     display.setCursor(tbx, tby + 1.875 * tbh + 5);
