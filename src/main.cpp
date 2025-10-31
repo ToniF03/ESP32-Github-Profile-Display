@@ -36,6 +36,7 @@ int contributions = 0;
 String GITHUB_NAME;
 int followers = 0;
 int following = 0;
+int8_t WiFiStrength = 0;
 
 // --- Helper to determine if pixel should be black ---
 inline bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level)
@@ -224,6 +225,31 @@ void failedConnection()
   goDeepSleep();
 }
 
+// --- Get WiFi signal description ---
+const char *getWiFidesc(int rssi)
+{
+  if (rssi == 0)
+  {
+    return "No Connection";
+  }
+  else if (rssi >= -50)
+  {
+    return "Excellent";
+  }
+  else if (rssi >= -60)
+  {
+    return "Good";
+  }
+  else if (rssi >= -70)
+  {
+    return "Fair";
+  }
+  else
+  { // rssi < -70
+    return "Weak";
+  }
+}
+
 void initWiFi()
 {
   WiFi.setHostname("PixelPioneer GitHub ePaper Screen");
@@ -251,10 +277,13 @@ void initWiFi()
   Serial.print("MAC-Address: ");
   Serial.println(WiFi.macAddress());
   Serial.print("Connection Strength: ");
+  Serial.print(getWiFidesc(WiFi.RSSI()));
+  Serial.print(" (");
   Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
+  Serial.println(" dBm)");
   Serial.println();
   Serial.println("--------------------------------");
+  WiFiStrength = WiFi.RSSI();
   delay(10);
 }
 
@@ -293,7 +322,6 @@ String receiveData(const char *URL)
   return payload;
 }
 
-
 int weekday = 0;
 
 String receiveChartInformation(String username)
@@ -323,14 +351,13 @@ String receiveChartInformation(String username)
 
     localtime_r(&adjusted, &timeinfo);
 
-    
     char timeStr2[64];
     sprintf(timeStr2, "%04d-%02d-%02d",
             timeinfo.tm_year + 1900,
             timeinfo.tm_mon + 1,
             timeinfo.tm_mday);
 
-    String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + username + "\\\") { contributionsCollection(from: \\\"" + timeStr2 + "T00:00:00Z\\\", to: \\\"" + timeStr + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount color } } } } } }\"}";
+    String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + username + "\\\") { contributionsCollection(from: \\\"" + timeStr2 + "T00:00:00Z\\\", to: \\\"" + timeStr + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }\"}";
 
     int httpCode = https.POST(graphQLQuery); // Perform the GET request
 
@@ -351,23 +378,6 @@ String receiveChartInformation(String username)
   return payload;
 }
 
-int hexToGray(const String &hexColor)
-{
-  // Expect format "#RRGGBB"
-  if (hexColor.length() != 7 || hexColor[0] != '#')
-    return 0;
-
-  // Parse hex values
-  int r = strtol(hexColor.substring(1, 3).c_str(), nullptr, 16);
-  int g = strtol(hexColor.substring(3, 5).c_str(), nullptr, 16);
-  int b = strtol(hexColor.substring(5, 7).c_str(), nullptr, 16);
-
-  // Apply luminance formula
-  int gray = int(0.299 * r + 0.587 * g + 0.114 * b);
-
-  return gray; // 0–255 brightness
-}
-
 void setup()
 {
   Serial.begin(115200);
@@ -377,7 +387,6 @@ void setup()
   display.firstPage();
   initWiFi();
 
-  // Initialize SNTP using Arduino-style API (configTime) to avoid ESP-IDF-only symbols
   configTime(3600, 3600, "pool.ntp.org");
   int tries = 0;
   Serial.print("Obtaining time");
@@ -428,23 +437,20 @@ void setup()
     Serial.println(error.c_str());
   }
 
-  // TODO display stats like longest streak, max contributions in a day, etc.
   int longestStreak = 0;
   int streak = 0;
   int maxContributions = 0;
   int daysWithContributions = 0;
   float avgContributions = 0.0;
+  char *wifiStrengthDesc = (char *)getWiFidesc(WiFiStrength);
 
   contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
   for (int i = 0; i <= 371; i++)
   {
-    if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() == 0)
-      commits[i] = 209;
-    else
-      commits[i] = hexToGray(doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["color"].as<String>());
+    commits[i] = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>();
 
     // Calculate longest streak
-    if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() > 0)
+    if (commits[i] > 0)
     {
       streak++;
       if (streak > longestStreak)
@@ -456,13 +462,13 @@ void setup()
     }
 
     // Calculate max contributions in a day
-    if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() > maxContributions)
+    if (commits[i] > maxContributions)
     {
-      maxContributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>();
+      maxContributions = commits[i];
     }
 
     // Calculate days with contributions
-    if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() > 0)
+    if (commits[i] > 0)
     {
       daysWithContributions++;
     }
@@ -474,16 +480,11 @@ void setup()
   int currentStreak = 0;
   for (int i = 371 - (7 - weekday); i >= 0; i--)
   {
-    if (doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>() > 0)
-    {
+    if (commits[i] > 0)
       currentStreak++;
-    }
     else
-    {
       break;
-    }
   }
-
 
   do
   {
@@ -491,7 +492,7 @@ void setup()
 
     int16_t tbx, tby;
     uint16_t tbw, tbh;
-    
+
     // Draw GitHub icon and username
     display.setFont(&Roboto_Regular_6pt8b);
     display.fillRect(0, 464, 16, 16, GxEPD_BLACK);
@@ -507,8 +508,24 @@ void setup()
     display.fillRect(770 - tbw, 464, 16, 16, GxEPD_BLACK);
     display.drawBitmap(770 - tbw, 464, wi_time_1_16x16, 16, 16, GxEPD_WHITE);
 
+    // Draw WiFi icon and strength
+    display.getTextBounds(String(wifiStrengthDesc) + " (" + WiFiStrength + " dbm)", 770 - tbw, 480, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx - 10 - tbw, 480 - tbh * 0.33);
+    display.print(String(wifiStrengthDesc) + " (" + WiFiStrength + " dBm)");
+    display.fillRect(tbx - 31 - tbw, 464, 16, 16, GxEPD_BLACK);
+
+    if (wifiStrengthDesc == "Excellent")
+    display.drawBitmap(tbx - 31 - tbw, 464, wifi_16x16, 16, 16, GxEPD_WHITE);
+    else if (wifiStrengthDesc == "Good")
+      display.drawBitmap(tbx - 31 - tbw, 464, wifi_3_bar_16x16, 16, 16, GxEPD_WHITE);
+    else if (wifiStrengthDesc == "Fair")
+      display.drawBitmap(tbx - 31 - tbw, 464, wifi_2_bar_16x16, 16, 16, GxEPD_WHITE);
+    else if (wifiStrengthDesc == "Weak")
+      display.drawBitmap(tbx - 31 - tbw, 464, wifi_1_bar_16x16, 16, 16, GxEPD_WHITE);
+    
+
     // Print total contributions
-    fillGrayRoundRect(20, 20, 15, 176, 3, 3);
+    fillGrayRoundRect(20, 20, 15, 176, 3, 4);
     display.setFont(&Roboto_Regular_48pt8b);
     display.getTextBounds(String(contributions), 50, 216, &tbx, &tby, &tbw, &tbh);
     display.setCursor(tbx, tby);
@@ -520,7 +537,7 @@ void setup()
     display.print("Contributions in the last year");
 
     // Print longest streak
-    fillGrayRoundRect(350, 20, 15, 83, 3, 3);
+    fillGrayRoundRect(350, 20, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(longestStreak), 380, 55, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -532,7 +549,7 @@ void setup()
     display.print("Longest Streak");
 
     // Print max contributions in a day
-    fillGrayRoundRect(350, 113, 15, 83, 3, 3);
+    fillGrayRoundRect(350, 113, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(maxContributions), 380, 148, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -544,7 +561,7 @@ void setup()
     display.print("Most in a Day");
 
     // Print current streak
-    fillGrayRoundRect(555, 20, 15, 83, 3, 3);
+    fillGrayRoundRect(555, 20, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(currentStreak), 575, 55, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -556,7 +573,7 @@ void setup()
     display.print("Current Streak");
 
     // Print average contributions
-    fillGrayRoundRect(555, 113, 15, 83, 3, 3);
+    fillGrayRoundRect(555, 113, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(avgContributions), 575, 148, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -577,11 +594,7 @@ void setup()
         int index = week * 7 + day;
         if (index >= 371)
           break;
-        int color = map(commits[index], 0, 236, 17, 0);
-        if (color == 1)
-          color = 0;
-        else
-          color = map(color, 1, 17, 3, 17);
+        int color = map(commits[index], 0, maxContributions, 3, 16);
         fillGrayRoundRect(5 + week * 15, 220 + day * 33, 10, 27, 2, color);
       }
     }
