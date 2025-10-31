@@ -32,6 +32,11 @@ const uint8_t bayer4x4[4][4] = {
     {3, 11, 1, 9},
     {15, 7, 13, 5}};
 
+int contributions = 0;
+String GITHUB_NAME;
+int followers = 0;
+int following = 0;
+
 // --- Helper to determine if pixel should be black ---
 inline bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level)
 {
@@ -362,11 +367,6 @@ int hexToGray(const String &hexColor)
 
   return gray; // 0–255 brightness
 }
-
-int contributions = 0;
-String GITHUB_NAME;
-int followers = 0;
-int following = 0;
 
 void setup()
 {
