@@ -1,18 +1,21 @@
-#include <ArduinoJson.h>
-#include <GxEPD2_BW.h>
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
-#include <HTTPClient.h>
-#include <time.h>
+// Libraries for ESP32 functionality
+#include <ArduinoJson.h>        // JSON parsing for API responses
+#include <GxEPD2_BW.h>         // E-paper display driver
+#include <WiFi.h>              // WiFi connectivity
+#include <WiFiClientSecure.h>  // Secure HTTPS client
+#include <HTTPClient.h>        // HTTP client for API calls
+#include <time.h>              // Time and date functions
 
+// Project resources
 #include <resources/icons/icons.h>
 #include <resources/fonts/fonts.h>
 #include <resources/credentials.h>
 
-#define BSY 4
-#define RST 16
-#define DC 17
-#define CS 5
+// E-paper display pin definitions
+#define BSY 4   // Busy pin
+#define RST 16  // Reset pin
+#define DC 17   // Data/Command pin
+#define CS 5    // Chip Select pin
 
 /*
  * Screen Connection
@@ -24,21 +27,30 @@
  * SDI  ->  23
  */
 
+// Initialize 7.5" e-paper display
 GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(GxEPD2_750_GDEY075T7(CS, DC, RST, BSY));
 
+// Bayer 4x4 dithering matrix for grayscale simulation on black/white display
 const uint8_t bayer4x4[4][4] = {
     {0, 8, 2, 10},
     {12, 4, 14, 6},
     {3, 11, 1, 9},
     {15, 7, 13, 5}};
 
-int contributions = 0;
-String GITHUB_NAME;
-int followers = 0;
-int following = 0;
-int8_t WiFiStrength = 0;
+// Global variables for GitHub data
+int contributions = 0;      // Total contributions in the last year
+String GITHUB_NAME;         // User's display name
+int followers = 0;          // Number of followers
+int following = 0;          // Number of following
+int8_t WiFiStrength = 0;    // WiFi signal strength in dBm
 
-// --- Helper to determine if pixel should be black ---
+/**
+ * Determine if a pixel should be black using Bayer dithering
+ * @param x X coordinate of the pixel
+ * @param y Y coordinate of the pixel
+ * @param level Grayscale level (0=white, 17=black, 1-16=dithered)
+ * @return true if pixel should be black, false if white
+ */
 inline bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level)
 {
   if (level == 0)
@@ -50,7 +62,12 @@ inline bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level)
   return bayer4x4[y % 4][x % 4] < threshold;
 }
 
-// --- Draw a pixel with gray ---
+/**
+ * Draw a single pixel with dithered grayscale
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @param level Grayscale level (0-17)
+ */
 void drawGrayPixel(int x, int y, uint8_t level)
 {
   if (isPixelBlack(x, y, level))
@@ -59,7 +76,14 @@ void drawGrayPixel(int x, int y, uint8_t level)
     display.drawPixel(x, y, GxEPD_WHITE);
 }
 
-// --- Draw rectangle (outline) ---
+/**
+ * Draw a rectangle outline with dithered grayscale
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param level Grayscale level (0-17)
+ */
 void drawGrayRect(int x, int y, int w, int h, uint8_t level)
 {
   for (int i = x; i < x + w; i++)
@@ -74,7 +98,14 @@ void drawGrayRect(int x, int y, int w, int h, uint8_t level)
   }
 }
 
-// --- Fill rectangle ---
+/**
+ * Fill a rectangle with dithered grayscale
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param level Grayscale level (0-17)
+ */
 void fillGrayRect(int x, int y, int w, int h, uint8_t level)
 {
   for (int j = y; j < y + h; j++)
@@ -86,7 +117,14 @@ void fillGrayRect(int x, int y, int w, int h, uint8_t level)
   }
 }
 
-// --- Draw line (Bresenham) ---
+/**
+ * Draw a line using Bresenham's algorithm with dithered grayscale
+ * @param x0 Start X coordinate
+ * @param y0 Start Y coordinate
+ * @param x1 End X coordinate
+ * @param y1 End Y coordinate
+ * @param level Grayscale level (0-17)
+ */
 void drawGrayLine(int x0, int y0, int x1, int y1, uint8_t level)
 {
   int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -111,7 +149,13 @@ void drawGrayLine(int x0, int y0, int x1, int y1, uint8_t level)
   }
 }
 
-// --- Draw circle (outline) ---
+/**
+ * Draw a circle outline using midpoint circle algorithm with dithered grayscale
+ * @param xc Center X coordinate
+ * @param yc Center Y coordinate
+ * @param r Radius
+ * @param level Grayscale level (0-17)
+ */
 void drawGrayCircle(int xc, int yc, int r, uint8_t level)
 {
   int x = 0, y = r;
@@ -139,7 +183,13 @@ void drawGrayCircle(int xc, int yc, int r, uint8_t level)
   }
 }
 
-// --- Fill circle ---
+/**
+ * Fill a circle using midpoint circle algorithm with dithered grayscale
+ * @param xc Center X coordinate
+ * @param yc Center Y coordinate
+ * @param r Radius
+ * @param level Grayscale level (0-17)
+ */
 void fillGrayCircle(int xc, int yc, int r, uint8_t level)
 {
   int x = 0, y = r;
@@ -169,7 +219,15 @@ void fillGrayCircle(int xc, int yc, int r, uint8_t level)
   }
 }
 
-// --- Draw rounded rectangle ---
+/**
+ * Draw a rounded rectangle outline with dithered grayscale
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param radius Corner radius
+ * @param level Grayscale level (0-17)
+ */
 void drawGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
 {
   drawGrayCircle(x + radius, y + radius, radius, level);
@@ -182,7 +240,15 @@ void drawGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
   drawGrayRect(x + w - 1, y + radius, 1, h - 2 * radius, level);
 }
 
-// --- Fill rounded rectangle ---
+/**
+ * Fill a rounded rectangle with dithered grayscale
+ * @param x Top-left X coordinate
+ * @param y Top-left Y coordinate
+ * @param w Width
+ * @param h Height
+ * @param radius Corner radius
+ * @param level Grayscale level (0-17)
+ */
 void fillGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
 {
   fillGrayRect(x + radius, y, w - 2 * radius, h, level);
@@ -193,16 +259,24 @@ void fillGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
   fillGrayCircle(x + w - radius - 1, y + h - radius - 1, radius, level);
 }
 
+/**
+ * Put the ESP32 into deep sleep mode to save power
+ * Wakes up after 6 hours to refresh the display
+ */
 void goDeepSleep()
 {
   display.hibernate();
-  // Go to deep sleep for 6 hours (2.16e10 microseconds)
+  // Go to deep sleep for 6 hours (2.16e10 microseconds = 21,600,000,000 µs)
   esp_sleep_enable_timer_wakeup(2.16e10);
   Serial.println("ESP goes to deep sleep now");
   Serial.flush();
   esp_deep_sleep_start();
 }
 
+/**
+ * Display a WiFi connection failure message on the e-paper screen
+ * and then enter deep sleep mode
+ */
 void failedConnection()
 {
   display.setFont(&Roboto_Regular_11pt8b);
@@ -225,7 +299,11 @@ void failedConnection()
   goDeepSleep();
 }
 
-// --- Get WiFi signal description ---
+/**
+ * Convert WiFi signal strength (RSSI) to human-readable description
+ * @param rssi Signal strength in dBm
+ * @return String description of signal quality
+ */
 const char *getWiFidesc(int rssi)
 {
   if (rssi == 0)
@@ -250,6 +328,11 @@ const char *getWiFidesc(int rssi)
   }
 }
 
+/**
+ * Initialize WiFi connection with timeout and error handling
+ * Sets hostname and connects to configured network
+ * Calls failedConnection() if unable to connect within 30 seconds
+ */
 void initWiFi()
 {
   WiFi.setHostname("PixelPioneer GitHub ePaper Screen");
@@ -287,8 +370,14 @@ void initWiFi()
   delay(10);
 }
 
+// Global time structure for NTP time synchronization
 struct tm timeinfo;
 
+/**
+ * Fetch data from a given URL using HTTPS
+ * @param URL The HTTPS URL to fetch data from
+ * @return Response payload as a String, or empty string on failure
+ */
 String receiveData(const char *URL)
 {
   String payload;
@@ -322,8 +411,15 @@ String receiveData(const char *URL)
   return payload;
 }
 
+// Current day of week (0=Sunday, 6=Saturday)
 int weekday = 0;
 
+/**
+ * Fetch GitHub contribution calendar data using GraphQL API
+ * Retrieves one year of contribution data ending on current date
+ * @param username GitHub username to query
+ * @return JSON response containing contribution calendar data
+ */
 String receiveChartInformation(String username)
 {
   String payload;
@@ -378,6 +474,11 @@ String receiveChartInformation(String username)
   return payload;
 }
 
+/**
+ * Setup function - runs once at startup
+ * Initializes display, connects to WiFi, fetches GitHub data,
+ * renders the display, and enters deep sleep
+ */
 void setup()
 {
   Serial.begin(115200);
@@ -387,6 +488,7 @@ void setup()
   display.firstPage();
   initWiFi();
 
+  // Configure NTP time sync (GMT+1, DST offset 1 hour)
   configTime(3600, 3600, "pool.ntp.org");
   int tries = 0;
   Serial.print("Obtaining time");
@@ -403,7 +505,7 @@ void setup()
   }
   Serial.println();
 
-  // Print current time
+  // Format and display current time
   Serial.println(&timeinfo, "Current time: %A, %B %d %Y %H:%M:%S");
   char timeStr[64];
   sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d",
@@ -415,7 +517,8 @@ void setup()
           timeinfo.tm_sec);
   weekday = timeinfo.tm_wday;
 
-  // Retrieve GitHub follower data
+  // Fetch GitHub profile data (followers, following, name)
+
   String profileJson = receiveData(String(String("https://api.github.com/users/") + GITHUB_USERNAME).c_str());
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, profileJson);
@@ -429,6 +532,7 @@ void setup()
   following = doc["following"].as<int>();
   GITHUB_NAME = doc["name"].as<String>();
 
+  // Array to store daily contribution counts for the past year (53 weeks * 7 days)
   uint8_t commits[372];
   error = deserializeJson(doc, receiveChartInformation(GITHUB_USERNAME));
   if (error)
@@ -437,11 +541,12 @@ void setup()
     Serial.println(error.c_str());
   }
 
-  int longestStreak = 0;
-  int streak = 0;
-  int maxContributions = 0;
-  int daysWithContributions = 0;
-  float avgContributions = 0.0;
+  // Initialize statistics variables
+  int longestStreak = 0;        // Longest consecutive days with contributions
+  int streak = 0;               // Temporary streak counter
+  int maxContributions = 0;     // Highest contributions in a single day
+  int daysWithContributions = 0; // Total days with at least one contribution
+  float avgContributions = 0.0;  // Average contributions per day
   char *wifiStrengthDesc = (char *)getWiFidesc(WiFiStrength);
 
   contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
@@ -474,9 +579,11 @@ void setup()
     }
   }
 
+  // Calculate average contributions per day, rounded to 2 decimal places
   avgContributions = (float)contributions / (365 + weekday);
   avgContributions = roundf(avgContributions * 100) / 100;
 
+  // Calculate current active streak (consecutive days from today backwards)
   int currentStreak = 0;
   for (int i = 371 - (7 - weekday); i >= 0; i--)
   {
@@ -486,14 +593,15 @@ void setup()
       break;
   }
 
+  // Main display rendering loop
   do
   {
     display.clearScreen();
 
-    int16_t tbx, tby;
-    uint16_t tbw, tbh;
+    int16_t tbx, tby;   // Text bounding box x, y
+    uint16_t tbw, tbh;  // Text bounding box width, height
 
-    // Draw GitHub icon and username
+    // Display GitHub username and full name in footer
     display.setFont(&Roboto_Regular_6pt8b);
     display.fillRect(0, 464, 16, 16, GxEPD_BLACK);
     display.drawBitmap(0, 464, sy_github_16x16, 16, 16, GxEPD_WHITE);
@@ -501,14 +609,14 @@ void setup()
     display.setCursor(20, 480 - tbh * 0.25);
     display.print(String(GITHUB_USERNAME) + " (" + GITHUB_NAME + ")");
 
-    // Draw time icon and time
+    // Display current date and time in footer
     display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
     display.setCursor(795 - tbw, 480 - tbh * 0.33);
     display.print(timeStr);
     display.fillRect(770 - tbw, 464, 16, 16, GxEPD_BLACK);
     display.drawBitmap(770 - tbw, 464, wi_time_1_16x16, 16, 16, GxEPD_WHITE);
 
-    // Draw WiFi icon and strength
+    // Display WiFi signal strength with appropriate icon
     display.getTextBounds(String(wifiStrengthDesc) + " (" + WiFiStrength + " dbm)", 770 - tbw, 480, &tbx, &tby, &tbw, &tbh);
     display.setCursor(tbx - 10 - tbw, 480 - tbh * 0.33);
     display.print(String(wifiStrengthDesc) + " (" + WiFiStrength + " dBm)");
@@ -584,7 +692,7 @@ void setup()
     display.setCursor(tbx, tby + 1.875 * tbh + 5);
     display.print("Average per Day");
 
-    // Draw contribution graph
+    // Render contribution heatmap (53 weeks x 7 days)
     for (int week = 0; week < 53; week++)
     {
       for (int day = 0; day < 7; day++)
@@ -594,13 +702,17 @@ void setup()
         int index = week * 7 + day;
         if (index >= 371)
           break;
+        // Map contribution count to grayscale level (3=light, 16=dark)
         int color = map(commits[index], 0, maxContributions, 3, 16);
         fillGrayRoundRect(5 + week * 15, 220 + day * 33, 10, 27, 2, color);
       }
     }
 
   } while (display.nextPage());
+  
+  // Enter deep sleep to conserve power until next update
   goDeepSleep();
 }
 
+// Loop function - not used since device enters deep sleep after setup
 void loop() {}
