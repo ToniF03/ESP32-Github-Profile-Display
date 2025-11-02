@@ -1,8 +1,9 @@
 # ESP32 GitHub Profile Display
 
-A beautiful e-paper display that shows your GitHub contribution statistics on a 7.5" e-ink screen. The ESP32 fetches your GitHub profile data via WiFi and renders an elegant dashboard with contribution graphs, streaks, and statistics.
+A beautiful e-paper display that shows your GitHub contribution statistics on a 7.5" e-ink screen. The ESP32 fetches your GitHub profile data via WiFi and renders an elegant dashboard with a contribution heatmap, streaks, and detailed statistics—all with ultra-low power consumption thanks to deep sleep mode.
 
-![Project Preview](preview.jpg) <!-- Add your project photo here -->
+![Project Preview](preview.jpg)
+*Add your project photo here to showcase the display*
 
 ## Features
 
@@ -16,28 +17,47 @@ A beautiful e-paper display that shows your GitHub contribution statistics on a 
 
 ## Hardware Requirements
 
-- **ESP32 Development Board** (ESP32-DevKitC or similar)
-- **7.5" E-Paper Display** - GDEY075T7 (800x480, Black/White)
-- **Connecting Wires**
+### Components
 
-### Pin Configuration
+- **ESP32 Development Board** (ESP32-DevKitC or compatible)
+- **7.5" E-Paper Display** - Waveshare/Good Display GDEY075T7 (800x480 pixels, Black/White)
+- **Jumper Wires** (Female-to-Female recommended)
+- **Micro-USB Cable** (for programming and power)
+- **Optional**: External power source (battery pack, solar panel, etc.)
 
-| E-Paper Pin | ESP32 Pin | Description |
-|-------------|-----------|-------------|
-| BSY         | GPIO 4    | Busy signal |
-| RST         | GPIO 16   | Reset       |
-| DC          | GPIO 17   | Data/Command|
-| CS          | GPIO 5    | Chip Select |
-| SCK         | GPIO 18   | SPI Clock   |
-| SDI (MOSI)  | GPIO 23   | SPI Data    |
+### Wiring Diagram
+
+| E-Paper Pin | ESP32 Pin | Pin Type    | Description           |
+|-------------|-----------|-------------|-----------------------|
+| VCC         | 3.3V      | Power       | Power supply (3.3V)   |
+| GND         | GND       | Ground      | Ground                |
+| BSY         | GPIO 4    | Input       | Busy signal           |
+| RST         | GPIO 16   | Output      | Reset                 |
+| DC          | GPIO 17   | Output      | Data/Command select   |
+| CS          | GPIO 5    | Output      | Chip Select (SPI)     |
+| SCK (CLK)   | GPIO 18   | Output      | SPI Clock             |
+| SDI (MOSI)  | GPIO 23   | Output      | SPI Data (MOSI)       |
+
+**Note**: Ensure your e-paper display is rated for 3.3V operation. Some displays require 5V.
 
 ## Software Requirements
 
-- [PlatformIO](https://platformio.org/) IDE or VS Code with PlatformIO extension
-- Arduino framework for ESP32
-- Required libraries (auto-installed via PlatformIO):
-  - `GxEPD2` (^1.6.5) - E-paper display driver
-  - `ArduinoJson` (^7.4.2) - JSON parsing for API responses
+### Development Environment
+
+- [Visual Studio Code](https://code.visualstudio.com/) with [PlatformIO extension](https://platformio.org/install/ide?install=vscode)
+  - *OR* [PlatformIO IDE](https://platformio.org/) standalone
+- Arduino framework for ESP32 (installed automatically by PlatformIO)
+
+### Dependencies
+
+The following libraries are automatically installed via PlatformIO:
+
+- **GxEPD2** (v1.6.5) - E-paper display driver library
+  - Provides hardware abstraction for various e-paper displays
+  - Handles SPI communication and display refresh
+- **ArduinoJson** (v7.4.2) - JSON parsing library
+  - Parses GitHub API responses efficiently
+  - Minimal memory footprint
 
 ## Installation
 
@@ -50,7 +70,7 @@ cd ESP32-Github-Profile-Display
 
 ### 2. Configure Credentials
 
-Edit `include/resources/credentials.h` with your information:
+Create or edit `include/resources/credentials.h` with your information:
 
 ```cpp
 #define WIFI_SSID "YourWiFiSSID"
@@ -59,32 +79,51 @@ Edit `include/resources/credentials.h` with your information:
 #define GITHUB_PAT "your_github_personal_access_token"
 ```
 
-**⚠️ IMPORTANT: Never commit this file with real credentials!**
+**⚠️ SECURITY WARNING**: 
+- **Never commit this file with real credentials to a public repository!**
+- Add `include/resources/credentials.h` to your `.gitignore`
+- Consider creating a `credentials.h.example` template file instead
 
-#### Getting a GitHub Personal Access Token
+#### Getting a GitHub Personal Access Token (PAT)
 
-1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
-2. Click "Generate new token (classic)"
-3. Give it a descriptive name (e.g., "ESP32 Display")
-4. Select the `read:user` scope (to read profile information)
-5. Click "Generate token" and copy it immediately
+1. Navigate to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+2. Click **"Generate new token (classic)"**
+3. Configure the token:
+   - **Note**: Give it a descriptive name (e.g., "ESP32 GitHub Display")
+   - **Expiration**: Choose your preferred duration (90 days, 1 year, or no expiration)
+   - **Scopes**: Select `read:user` (allows reading profile information)
+4. Click **"Generate token"** at the bottom
+5. **Important**: Copy the token immediately—you won't be able to see it again!
+6. Store it securely in your `credentials.h` file
+
+> **Note**: The project uses GitHub's GraphQL API to fetch contribution data, which requires authentication even for public profiles.
 
 ### 3. Build and Upload
 
-Using PlatformIO:
+#### Option A: Using PlatformIO CLI
 
 ```bash
 # Build the project
 pio run
 
-# Upload to ESP32
+# Upload to ESP32 (automatically detects port)
 pio run --target upload
 
-# Monitor serial output
+# Monitor serial output (115200 baud)
 pio device monitor
+
+# Or do all in one command
+pio run --target upload && pio device monitor
 ```
 
-Or use the PlatformIO IDE buttons in VS Code.
+#### Option B: Using VS Code PlatformIO Extension
+
+1. Open the project folder in VS Code
+2. Click the **Build** button (checkmark) in the bottom toolbar
+3. Click the **Upload** button (arrow) to flash the ESP32
+4. Click the **Serial Monitor** button (plug) to view output
+
+> **Tip**: Use Ctrl+C to exit the serial monitor
 
 ## How It Works
 
@@ -107,85 +146,145 @@ Or use the PlatformIO IDE buttons in VS Code.
 
 ### Grayscale Rendering
 
-The display uses a **Bayer 4x4 dithering matrix** to simulate 18 levels of grayscale on the black/white e-paper display. This creates smooth gradients in the contribution heatmap.
+The display uses a **Bayer 4x4 dithering matrix** to simulate 18 levels of grayscale (0=white, 17=black) on the monochrome e-paper display. This ordered dithering algorithm creates smooth gradients in the contribution heatmap by varying the density of black pixels in a checkerboard-like pattern.
+
+**Dithering Matrix:**
+```
+ 0   8   2  10
+12   4  14   6
+ 3  11   1   9
+15   7  13   5
+```
+
+The contribution intensity is mapped to grayscale levels based on the maximum daily contributions, providing a visual representation of coding activity.
 
 ## Display Layout
 
+The 800x480 pixel display is organized as follows:
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Total Contributions                                         │
-│      XXXX                                                     │
-│      Contributions in the last year                          │
-│                                                               │
-│  ┌────────────┐  ┌────────────┐                             │
-│  │    XX      │  │    XX      │                             │
-│  │ Longest    │  │   Most     │                             │
-│  │ Streak     │  │  in a Day  │                             │
-│  └────────────┘  └────────────┘                             │
-│                                                               │
-│  ┌────────────┐  ┌────────────┐                             │
-│  │    XX      │  │   XX.XX    │                             │
-│  │  Current   │  │  Average   │                             │
-│  │  Streak    │  │  per Day   │                             │
-│  └────────────┘  └────────────┘                             │
-│                                                               │
-│  [Contribution Heatmap - 53 weeks x 7 days]                 │
-│  ████████████████████████████████████████████████████████   │
-│  ████████████████████████████████████████████████████████   │
-│  ████████████████████████████████████████████████████████   │
-│                                                               │
-│  ⚡ username (Full Name)    📡 WiFi Signal    🕐 Time        │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                   │
+│   Total Contributions                                            │
+│       XXXX                                                        │
+│   Contributions in the last year                                 │
+│                                                                   │
+│   ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────┐ │
+│   │    XX      │  │    XX      │  │    XX      │  │  XX.XX   │ │
+│   │  Longest   │  │   Most     │  │  Current   │  │ Average  │ │
+│   │  Streak    │  │  in a Day  │  │  Streak    │  │ per Day  │ │
+│   └────────────┘  └────────────┘  └────────────┘  └──────────┘ │
+│                                                                   │
+│   ┌───────────────────────────────────────────────────────────┐ │
+│   │  53-Week Contribution Heatmap (GitHub-style calendar)     │ │
+│   │  ▓░░█▓░░░▓█░█░░░░░██▓░░░░░░░█▓░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  █▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  ░░░░░░░▓█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
+│   └───────────────────────────────────────────────────────────┘ │
+│                                                                   │
+│  🐙 username (Full Name)  � Good (-62 dBm)  🕐 02/11/2025 14:30 │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+**Display Elements:**
+- Large total contribution count
+- Four statistic cards (longest streak, max in a day, current streak, average)
+- 53×7 contribution heatmap with grayscale intensity
+- Footer with GitHub info, WiFi signal strength, and current time
 
 ## Configuration
 
 ### Update Interval
 
-The deep sleep duration is set in `main.cpp`:
+The deep sleep duration is configured in `main.cpp` in the `goDeepSleep()` function:
 
 ```cpp
-// Current: 6 hours (21,600,000,000 microseconds)
+// Current: 6 hours (21,600,000,000 microseconds = 6 × 60 × 60 × 1,000,000)
 esp_sleep_enable_timer_wakeup(2.16e10);
 ```
 
-Modify this value to change update frequency:
-- 1 hour: `3.6e9`
-- 12 hours: `4.32e10`
-- 24 hours: `8.64e10`
+Modify this value to change the update frequency:
 
-### Timezone
+| Interval  | Microseconds | Scientific Notation |
+|-----------|--------------|---------------------|
+| 30 min    | 1,800,000,000| `1.8e9`            |
+| 1 hour    | 3,600,000,000| `3.6e9`            |
+| 3 hours   | 10,800,000,000| `1.08e10`         |
+| 6 hours   | 21,600,000,000| `2.16e10`         |
+| 12 hours  | 43,200,000,000| `4.32e10`         |
+| 24 hours  | 86,400,000,000| `8.64e10`         |
 
-Adjust the timezone in `main.cpp`:
+> **Note**: More frequent updates will consume more power and may impact battery life if running on batteries.
+
+### Timezone Configuration
+
+Adjust the timezone in the `setup()` function in `main.cpp`:
 
 ```cpp
-// GMT+1 with DST offset of 1 hour
+// Parameters: gmtOffset_sec, daylightOffset_sec, ntpServer
 configTime(3600, 3600, "pool.ntp.org");
 ```
 
-Change the first parameter for different timezones (offset in seconds).
+**Parameters:**
+- `gmtOffset_sec`: Timezone offset from GMT in seconds
+- `daylightOffset_sec`: Daylight Saving Time offset in seconds (usually 3600 or 0)
+- `ntpServer`: NTP server address
+
+**Common Timezone Examples:**
+
+| Timezone           | GMT Offset | DST Offset | Example                        |
+|--------------------|------------|------------|--------------------------------|
+| GMT/UTC            | 0          | 0          | `configTime(0, 0, ...)`        |
+| CET (GMT+1)        | 3600       | 3600       | `configTime(3600, 3600, ...)`  |
+| EST (GMT-5)        | -18000     | 3600       | `configTime(-18000, 3600, ...)` |
+| PST (GMT-8)        | -28800     | 3600       | `configTime(-28800, 3600, ...)` |
+| JST (GMT+9)        | 32400      | 0          | `configTime(32400, 0, ...)`    |
+
+> **Formula**: Offset in seconds = Hours × 3600
 
 ## Troubleshooting
 
 ### WiFi Connection Failed
 
-- Check SSID and password in `credentials.h`
-- Ensure 2.4GHz WiFi (ESP32 doesn't support 5GHz)
-- Move closer to router
-- Check serial monitor for detailed error messages
+**Symptoms**: Display shows "WiFi Connection failed" message
 
-### Display Not Updating
+**Solutions**:
+- ✓ Verify SSID and password in `include/resources/credentials.h`
+- ✓ Ensure you're using **2.4GHz WiFi** (ESP32 doesn't support 5GHz)
+- ✓ Check WiFi signal strength—move ESP32 closer to the router
+- ✓ Try a different WiFi network to rule out router issues
+- ✓ Monitor serial output for detailed error messages (`pio device monitor`)
+- ✓ Verify your WiFi doesn't require captive portal login
 
-- Verify all pins are correctly connected
-- Check if BSY pin is working (should go low when display is ready)
-- Ensure adequate power supply (USB power should work)
+### Display Not Updating or Shows Garbage
 
-### API Errors
+**Symptoms**: Blank screen, partial content, or corrupted graphics
 
-- Verify GitHub PAT has correct permissions
-- Check if token has expired
-- Ensure username is correct
-- Monitor serial output for HTTP error codes
+**Solutions**:
+- ✓ Double-check all pin connections (especially SPI pins)
+- ✓ Verify the BSY (Busy) pin—it should go LOW when the display is ready
+- ✓ Ensure stable 3.3V power supply (USB power from PC/adapter should work)
+- ✓ Try a shorter refresh: the display needs adequate voltage during updates
+- ✓ Check if your e-paper model matches the code (GDEY075T7)
+- ✓ Test with a simple GxEPD2 example sketch first
+
+### GitHub API Errors
+
+**Symptoms**: HTTP errors, no data displayed, or JSON parsing failures
+
+**Solutions**:
+- ✓ Verify GitHub Personal Access Token has `read:user` scope
+- ✓ Check if the token has expired—generate a new one if needed
+- ✓ Confirm the username is correct (case-sensitive)
+- ✓ Monitor serial output for HTTP status codes:
+  - `401 Unauthorized`: Invalid or expired token
+  - `403 Forbidden`: Rate limit exceeded or insufficient permissions
+  - `404 Not Found`: Username doesn't exist
+- ✓ Test the API manually: `curl -H "Authorization: Bearer YOUR_TOKEN" https://api.github.com/users/YOUR_USERNAME`
 
 ### Compilation Errors
 
@@ -202,18 +301,61 @@ pio run
 
 ## Power Consumption
 
-- **Active (WiFi + Display Update)**: ~150mA for ~30 seconds
-- **Deep Sleep**: ~10µA
-- **Average over 6 hours**: < 1mA
+### Power Profile
 
-With a 1000mAh battery, the device can run for several months between charges.
+| Mode                          | Current Draw | Duration      |
+|-------------------------------|--------------|---------------|
+| Active (WiFi + API calls)     | ~150-200mA   | ~20-30 sec    |
+| Display update (full refresh) | ~50-100mA    | ~5-10 sec     |
+| Deep sleep                    | ~10-15µA     | ~6 hours      |
+
+### Battery Life Estimation
+
+**Average current over 6-hour cycle**: ~0.2-0.5mA
+
+**Battery Life Examples**:
+- 1000mAh LiPo battery: ~3-6 months
+- 2000mAh LiPo battery: ~6-12 months
+- 5000mAh power bank: 1+ year
+
+> **Note**: Actual battery life depends on update frequency, WiFi signal strength, API response times, and battery self-discharge rate.
+
+### Power Optimization Tips
+
+- Increase deep sleep duration (e.g., 12 or 24 hours)
+- Use partial display refresh when possible (requires code modification)
+- Reduce WiFi timeout from 30 seconds if your network is fast
+- Consider adding a low-battery voltage check before updates
 
 ## Future Enhancements
 
-- [ ] Add follower/following count display
-- [ ] Show repository count and stars
-- [ ] Battery level indicator
-- [ ] Web configuration portal
+Planned features and improvements:
+
+- [ ] **User Interface**
+  - [ ] Display follower/following counts
+  - [ ] Show repository count and total stars
+  - [ ] Add language breakdown chart
+  - [ ] Customizable themes (dark mode, color schemes)
+  
+- [ ] **Power Management**
+  - [ ] Battery voltage monitoring and low-battery warning
+  - [ ] Adaptive update intervals based on battery level
+  - [ ] Solar panel integration support
+  
+- [ ] **Configuration**
+  - [ ] Web-based configuration portal (WiFi manager)
+  - [ ] OTA (Over-The-Air) firmware updates
+  - [ ] Multiple GitHub account profiles with switching
+  
+- [ ] **Display Optimization**
+  - [ ] Partial refresh support for faster updates
+  - [ ] Red/black/white display variant support
+  - [ ] Multiple display size support
+
+- [ ] **Features**
+  - [ ] Show recent commits or activity
+  - [ ] Integration with other services (GitLab, Bitbucket)
+  - [ ] QR code linking to GitHub profile
 
 ## Contributing
 
@@ -231,10 +373,13 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
-- [GxEPD2](https://github.com/ZinggJM/GxEPD2) - Excellent e-paper library
-- [ArduinoJson](https://arduinojson.org/) - Efficient JSON parsing
-- GitHub GraphQL API for contribution data
-- Roboto font family
+This project wouldn't be possible without these excellent libraries and resources:
+
+- **[GxEPD2](https://github.com/ZinggJM/GxEPD2)** by Jean-Marc Zingg - Comprehensive e-paper display library
+- **[ArduinoJson](https://arduinojson.org/)** by Benoît Blanchon - Efficient and elegant JSON parsing
+- **[GitHub GraphQL API](https://docs.github.com/en/graphql)** - For contribution calendar data
+- **[Roboto Font Family](https://fonts.google.com/specimen/Roboto)** by Christian Robertson - Clean, modern typography
+- **ESP32 Arduino Core** - Arduino framework implementation for ESP32
 
 ## Author
 
@@ -247,4 +392,19 @@ If you find this project helpful, please give it a ⭐ on GitHub!
 
 ---
 
-**Note**: Remember to keep your `credentials.h` file private and never commit it to a public repository. Consider adding it to `.gitignore`.
+## Security Best Practices
+
+⚠️ **Important Reminders**:
+
+1. **Never commit credentials** - Keep your `credentials.h` file private
+2. **Use `.gitignore`** - Add `include/resources/credentials.h` to prevent accidental commits
+3. **Rotate tokens regularly** - Regenerate your GitHub PAT periodically
+4. **Use minimal permissions** - Only grant the `read:user` scope, nothing more
+5. **Create a template** - Consider creating `credentials.h.example` with placeholder values
+
+**Example `.gitignore` entry**:
+```
+include/resources/credentials.h
+.pio/
+.vscode/
+```
