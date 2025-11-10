@@ -266,8 +266,8 @@ void fillGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
 void goDeepSleep()
 {
   display.hibernate();
-  // Go to deep sleep for 6 hours (2.16e10 microseconds = 21,600,000,000 µs)
-  esp_sleep_enable_timer_wakeup(2.16e10);
+  // Go to deep sleep for 3 hours (1.08e10 microseconds = 10,800,000,000 µs)
+  esp_sleep_enable_timer_wakeup(1.08e10);
   Serial.println("ESP goes to deep sleep now");
   Serial.flush();
   esp_deep_sleep_start();
