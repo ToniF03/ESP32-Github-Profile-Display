@@ -259,15 +259,18 @@ void fillGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
   fillGrayCircle(x + w - radius - 1, y + h - radius - 1, radius, level);
 }
 
+float timeTillWakeUp = 3.6e9; // 1 hour in microseconds
+
 /**
  * Put the ESP32 into deep sleep mode to save power
- * Wakes up after 6 hours to refresh the display
+ * Wakes up after 1 hour to refresh the display
  */
 void goDeepSleep()
 {
   display.hibernate();
-  // Go to deep sleep for 3 hours (1.08e10 microseconds = 10,800,000,000 µs)
-  esp_sleep_enable_timer_wakeup(1.08e10);
+  // Go to deep sleep for 1 hour (3.6e9 microseconds = 3,600,000,000 µs)
+  Serial.println(timeTillWakeUp / 1e6);
+  esp_sleep_enable_timer_wakeup(timeTillWakeUp);
   Serial.println("ESP goes to deep sleep now");
   Serial.flush();
   esp_deep_sleep_start();
@@ -507,6 +510,7 @@ void setup()
 
   // Format and display current time
   Serial.println(&timeinfo, "Current time: %A, %B %d %Y %H:%M:%S");
+  timeTillWakeUp -= (timeinfo.tm_min * 60 + timeinfo.tm_sec) * 1e6;
   char timeStr[64];
   sprintf(timeStr, "%02d/%02d/%04d %02d:%02d:%02d",
           timeinfo.tm_mday,
