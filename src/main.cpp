@@ -1,5 +1,5 @@
 // Libraries for ESP32 functionality
-#include <ArduinoJson.h>        // JSON parsing for API responses
+#include <ArduinoJson.h>       // JSON parsing for API responses
 #include <GxEPD2_BW.h>         // E-paper display driver
 #include <WiFi.h>              // WiFi connectivity
 #include <WiFiClientSecure.h>  // Secure HTTPS client
