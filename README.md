@@ -27,16 +27,16 @@ A beautiful e-paper display that shows your GitHub contribution statistics on a 
 
 ### Wiring Diagram
 
-| E-Paper Pin | ESP32 Pin | Pin Type    | Description           |
-|-------------|-----------|-------------|-----------------------|
-| VCC         | 3.3V      | Power       | Power supply (3.3V)   |
-| GND         | GND       | Ground      | Ground                |
-| BSY         | GPIO 4    | Input       | Busy signal           |
-| RST         | GPIO 16   | Output      | Reset                 |
-| DC          | GPIO 17   | Output      | Data/Command select   |
-| CS          | GPIO 5    | Output      | Chip Select (SPI)     |
-| SCK (CLK)   | GPIO 18   | Output      | SPI Clock             |
-| SDI (MOSI)  | GPIO 23   | Output      | SPI Data (MOSI)       |
+| E-Paper Pin | ESP32 Pin | Pin Type | Description         |
+| ----------- | --------- | -------- | ------------------- |
+| VCC         | 3.3V      | Power    | Power supply (3.3V) |
+| GND         | GND       | Ground   | Ground              |
+| BSY         | GPIO 4    | Input    | Busy signal         |
+| RST         | GPIO 16   | Output   | Reset               |
+| DC          | GPIO 17   | Output   | Data/Command select |
+| CS          | GPIO 5    | Output   | Chip Select (SPI)   |
+| SCK (CLK)   | GPIO 18   | Output   | SPI Clock           |
+| SDI (MOSI)  | GPIO 23   | Output   | SPI Data (MOSI)     |
 
 **Note**: Ensure your e-paper display is rated for 3.3V operation. Some displays require 5V.
 
@@ -80,6 +80,7 @@ Create or edit `include/resources/credentials.h` with your information:
 ```
 
 **⚠️ SECURITY WARNING**: 
+
 - **Never commit this file with real credentials to a public repository!**
 - Add `include/resources/credentials.h` to your `.gitignore`
 - Consider creating a `credentials.h.example` template file instead
@@ -149,6 +150,7 @@ pio run --target upload && pio device monitor
 The display uses a **Bayer 4x4 dithering matrix** to simulate 18 levels of grayscale (0=white, 17=black) on the monochrome e-paper display. This ordered dithering algorithm creates smooth gradients in the contribution heatmap by varying the density of black pixels in a checkerboard-like pattern.
 
 **Dithering Matrix:**
+
 ```
  0   8   2  10
 12   4  14   6
@@ -162,35 +164,10 @@ The contribution intensity is mapped to grayscale levels based on the maximum da
 
 The 800x480 pixel display is organized as follows:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                   │
-│   Total Contributions                                            │
-│       XXXX                                                        │
-│   Contributions in the last year                                 │
-│                                                                   │
-│   ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────┐ │
-│   │    XX      │  │    XX      │  │    XX      │  │  XX.XX   │ │
-│   │  Longest   │  │   Most     │  │  Current   │  │ Average  │ │
-│   │  Streak    │  │  in a Day  │  │  Streak    │  │ per Day  │ │
-│   └────────────┘  └────────────┘  └────────────┘  └──────────┘ │
-│                                                                   │
-│   ┌───────────────────────────────────────────────────────────┐ │
-│   │  53-Week Contribution Heatmap (GitHub-style calendar)     │ │
-│   │  ▓░░█▓░░░▓█░█░░░░░██▓░░░░░░░█▓░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  █▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  ░░░░░░░▓█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │ │
-│   └───────────────────────────────────────────────────────────┘ │
-│                                                                   │
-│  🐙 username (Full Name)  � Good (-62 dBm)  🕐 02/11/2025 14:30 │
-└─────────────────────────────────────────────────────────────────┘
-```
+![Display Layout](assets/displayLayout.png)
 
 **Display Elements:**
+
 - Large total contribution count
 - Four statistic cards (longest streak, max in a day, current streak, average)
 - 53×7 contribution heatmap with grayscale intensity
@@ -209,14 +186,14 @@ esp_sleep_enable_timer_wakeup(2.16e10);
 
 Modify this value to change the update frequency:
 
-| Interval  | Microseconds | Scientific Notation |
-|-----------|--------------|---------------------|
-| 30 min    | 1,800,000,000| `1.8e9`            |
-| 1 hour    | 3,600,000,000| `3.6e9`            |
-| 3 hours   | 10,800,000,000| `1.08e10`         |
-| 6 hours   | 21,600,000,000| `2.16e10`         |
-| 12 hours  | 43,200,000,000| `4.32e10`         |
-| 24 hours  | 86,400,000,000| `8.64e10`         |
+| Interval | Microseconds   | Scientific Notation |
+| -------- | -------------- | ------------------- |
+| 30 min   | 1,800,000,000  | `1.8e9`             |
+| 1 hour   | 3,600,000,000  | `3.6e9`             |
+| 3 hours  | 10,800,000,000 | `1.08e10`           |
+| 6 hours  | 21,600,000,000 | `2.16e10`           |
+| 12 hours | 43,200,000,000 | `4.32e10`           |
+| 24 hours | 86,400,000,000 | `8.64e10`           |
 
 > **Note**: More frequent updates will consume more power and may impact battery life if running on batteries.
 
@@ -230,19 +207,20 @@ configTime(3600, 3600, "pool.ntp.org");
 ```
 
 **Parameters:**
+
 - `gmtOffset_sec`: Timezone offset from GMT in seconds
 - `daylightOffset_sec`: Daylight Saving Time offset in seconds (usually 3600 or 0)
 - `ntpServer`: NTP server address
 
 **Common Timezone Examples:**
 
-| Timezone           | GMT Offset | DST Offset | Example                        |
-|--------------------|------------|------------|--------------------------------|
-| GMT/UTC            | 0          | 0          | `configTime(0, 0, ...)`        |
-| CET (GMT+1)        | 3600       | 3600       | `configTime(3600, 3600, ...)`  |
-| EST (GMT-5)        | -18000     | 3600       | `configTime(-18000, 3600, ...)` |
-| PST (GMT-8)        | -28800     | 3600       | `configTime(-28800, 3600, ...)` |
-| JST (GMT+9)        | 32400      | 0          | `configTime(32400, 0, ...)`    |
+| Timezone    | GMT Offset | DST Offset | Example                         |
+| ----------- | ---------- | ---------- | ------------------------------- |
+| GMT/UTC     | 0          | 0          | `configTime(0, 0, ...)`         |
+| CET (GMT+1) | 3600       | 3600       | `configTime(3600, 3600, ...)`   |
+| EST (GMT-5) | -18000     | 3600       | `configTime(-18000, 3600, ...)` |
+| PST (GMT-8) | -28800     | 3600       | `configTime(-28800, 3600, ...)` |
+| JST (GMT+9) | 32400      | 0          | `configTime(32400, 0, ...)`     |
 
 > **Formula**: Offset in seconds = Hours × 3600
 
@@ -253,6 +231,7 @@ configTime(3600, 3600, "pool.ntp.org");
 **Symptoms**: Display shows "WiFi Connection failed" message
 
 **Solutions**:
+
 - ✓ Verify SSID and password in `include/resources/credentials.h`
 - ✓ Ensure you're using **2.4GHz WiFi** (ESP32 doesn't support 5GHz)
 - ✓ Check WiFi signal strength—move ESP32 closer to the router
@@ -265,6 +244,7 @@ configTime(3600, 3600, "pool.ntp.org");
 **Symptoms**: Blank screen, partial content, or corrupted graphics
 
 **Solutions**:
+
 - ✓ Double-check all pin connections (especially SPI pins)
 - ✓ Verify the BSY (Busy) pin—it should go LOW when the display is ready
 - ✓ Ensure stable 3.3V power supply (USB power from PC/adapter should work)
@@ -277,6 +257,7 @@ configTime(3600, 3600, "pool.ntp.org");
 **Symptoms**: HTTP errors, no data displayed, or JSON parsing failures
 
 **Solutions**:
+
 - ✓ Verify GitHub Personal Access Token has `read:user` scope
 - ✓ Check if the token has expired—generate a new one if needed
 - ✓ Confirm the username is correct (case-sensitive)
@@ -303,17 +284,18 @@ pio run
 
 ### Power Profile
 
-| Mode                          | Current Draw | Duration      |
-|-------------------------------|--------------|---------------|
-| Active (WiFi + API calls)     | ~150-200mA   | ~20-30 sec    |
-| Display update (full refresh) | ~50-100mA    | ~5-10 sec     |
-| Deep sleep                    | ~10-15µA     | ~6 hours      |
+| Mode                          | Current Draw | Duration   |
+| ----------------------------- | ------------ | ---------- |
+| Active (WiFi + API calls)     | ~150-200mA   | ~20-30 sec |
+| Display update (full refresh) | ~50-100mA    | ~5-10 sec  |
+| Deep sleep                    | ~10-15µA     | ~6 hours   |
 
 ### Battery Life Estimation
 
 **Average current over 6-hour cycle**: ~0.2-0.5mA
 
 **Battery Life Examples**:
+
 - 1000mAh LiPo battery: ~3-6 months
 - 2000mAh LiPo battery: ~6-12 months
 - 5000mAh power bank: 1+ year
@@ -332,27 +314,32 @@ pio run
 Planned features and improvements:
 
 - [ ] **User Interface**
+  
   - [ ] Display follower/following counts
   - [ ] Show repository count and total stars
   - [ ] Add language breakdown chart
   - [ ] Customizable themes (dark mode, color schemes)
-  
+
 - [ ] **Power Management**
+  
   - [ ] Battery voltage monitoring and low-battery warning
   - [ ] Adaptive update intervals based on battery level
   - [ ] Solar panel integration support
-  
+
 - [ ] **Configuration**
+  
   - [ ] Web-based configuration portal (WiFi manager)
   - [ ] OTA (Over-The-Air) firmware updates
   - [ ] Multiple GitHub account profiles with switching
-  
+
 - [ ] **Display Optimization**
+  
   - [ ] Partial refresh support for faster updates
   - [ ] Red/black/white display variant support
   - [ ] Multiple display size support
 
 - [ ] **Features**
+  
   - [ ] Show recent commits or activity
   - [ ] Integration with other services (GitLab, Bitbucket)
   - [ ] QR code linking to GitHub profile
@@ -384,6 +371,7 @@ This project wouldn't be possible without these excellent libraries and resource
 ## Author
 
 **ToniF03**
+
 - GitHub: [@ToniF03](https://github.com/ToniF03)
 
 ## Support
@@ -403,6 +391,7 @@ If you find this project helpful, please give it a ⭐ on GitHub!
 5. **Create a template** - Consider creating `credentials.h.example` with placeholder values
 
 **Example `.gitignore` entry**:
+
 ```
 include/resources/credentials.h
 .pio/
