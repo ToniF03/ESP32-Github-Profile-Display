@@ -6,3 +6,5 @@
 .pio
 ### Credentials ###
 include/resources/credentials.h
+### Visual Studio Code ###
+.vscode
