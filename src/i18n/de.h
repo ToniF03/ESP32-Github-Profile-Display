@@ -15,4 +15,5 @@ constexpr Strings German =
         "Ausgezeichnet",
         "Gut",
         "Mittel",
-        "Schwach"};
+        "Schwach"
+        "Keine Verbindung"};

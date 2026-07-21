@@ -15,4 +15,5 @@ constexpr Strings English =
         "Excellent",
         "Good",
         "Fair",
-        "Weak"};
+        "Weak",
+        "No Connection"};

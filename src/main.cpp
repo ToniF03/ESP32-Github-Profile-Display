@@ -7,8 +7,6 @@
 #include <time.h>              // Time and date functions
 
 // Project resources
-#include <resources/icons/icons.h>
-#include <resources/fonts/fonts.h>
 #include <resources/credentials.h>
 
 // Project configs
@@ -17,238 +15,17 @@
 #include "config/timeConfig.h"
 #include "config/displayConfig.h"
 #include "config/layout.h"
+#include "i18n/i18n.h"
+#include "models/deviceInformation.h"
+#include "models/GitHubProfile.h"
+#include "models/GitHubStats.h"
 
 // Initialize 7.5" e-paper display
 GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(GxEPD2_750_GDEY075T7(Pins::CS, Pins::DC, Pins::RST, Pins::BSY));
 
-// Bayer 4x4 dithering matrix for grayscale simulation on black/white display
-const uint8_t bayer4x4[4][4] = {
-    {0, 8, 2, 10},
-    {12, 4, 14, 6},
-    {3, 11, 1, 9},
-    {15, 7, 13, 5}};
-
-// Global variables for GitHub data
-int contributions = 0;      // Total contributions in the last year
-String GITHUB_NAME;         // User's display name
-int followers = 0;          // Number of followers
-int following = 0;          // Number of following
-int8_t WiFiStrength = 0;    // WiFi signal strength in dBm
-
-/**
- * Determine if a pixel should be black using Bayer dithering
- * @param x X coordinate of the pixel
- * @param y Y coordinate of the pixel
- * @param level Grayscale level (0=white, 17=black, 1-16=dithered)
- * @return true if pixel should be black, false if white
- */
-inline bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level)
-{
-  if (level == 0)
-    return false; // totally white
-  if (level == 17)
-    return true; // totally black
-  // map level 1-16 to threshold 0-15
-  uint8_t threshold = level - 1;
-  return bayer4x4[y % 4][x % 4] < threshold;
-}
-
-/**
- * Draw a single pixel with dithered grayscale
- * @param x X coordinate
- * @param y Y coordinate
- * @param level Grayscale level (0-17)
- */
-void drawGrayPixel(int x, int y, uint8_t level)
-{
-  if (isPixelBlack(x, y, level))
-    display.drawPixel(x, y, GxEPD_BLACK);
-  else
-    display.drawPixel(x, y, GxEPD_WHITE);
-}
-
-/**
- * Draw a rectangle outline with dithered grayscale
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width
- * @param h Height
- * @param level Grayscale level (0-17)
- */
-void drawGrayRect(int x, int y, int w, int h, uint8_t level)
-{
-  for (int i = x; i < x + w; i++)
-  {
-    drawGrayPixel(i, y, level);
-    drawGrayPixel(i, y + h - 1, level);
-  }
-  for (int j = y; j < y + h; j++)
-  {
-    drawGrayPixel(x, j, level);
-    drawGrayPixel(x + w - 1, j, level);
-  }
-}
-
-/**
- * Fill a rectangle with dithered grayscale
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width
- * @param h Height
- * @param level Grayscale level (0-17)
- */
-void fillGrayRect(int x, int y, int w, int h, uint8_t level)
-{
-  for (int j = y; j < y + h; j++)
-  {
-    for (int i = x; i < x + w; i++)
-    {
-      drawGrayPixel(i, j, level);
-    }
-  }
-}
-
-/**
- * Draw a line using Bresenham's algorithm with dithered grayscale
- * @param x0 Start X coordinate
- * @param y0 Start Y coordinate
- * @param x1 End X coordinate
- * @param y1 End Y coordinate
- * @param level Grayscale level (0-17)
- */
-void drawGrayLine(int x0, int y0, int x1, int y1, uint8_t level)
-{
-  int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-  int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-  int err = dx + dy, e2;
-  while (true)
-  {
-    drawGrayPixel(x0, y0, level);
-    if (x0 == x1 && y0 == y1)
-      break;
-    e2 = 2 * err;
-    if (e2 >= dy)
-    {
-      err += dy;
-      x0 += sx;
-    }
-    if (e2 <= dx)
-    {
-      err += dx;
-      y0 += sy;
-    }
-  }
-}
-
-/**
- * Draw a circle outline using midpoint circle algorithm with dithered grayscale
- * @param xc Center X coordinate
- * @param yc Center Y coordinate
- * @param r Radius
- * @param level Grayscale level (0-17)
- */
-void drawGrayCircle(int xc, int yc, int r, uint8_t level)
-{
-  int x = 0, y = r;
-  int d = 3 - 2 * r;
-  while (y >= x)
-  {
-    drawGrayPixel(xc + x, yc + y, level);
-    drawGrayPixel(xc - x, yc + y, level);
-    drawGrayPixel(xc + x, yc - y, level);
-    drawGrayPixel(xc - x, yc - y, level);
-    drawGrayPixel(xc + y, yc + x, level);
-    drawGrayPixel(xc - y, yc + x, level);
-    drawGrayPixel(xc + y, yc - x, level);
-    drawGrayPixel(xc - y, yc - x, level);
-    x++;
-    if (d > 0)
-    {
-      y--;
-      d = d + 4 * (x - y) + 10;
-    }
-    else
-    {
-      d = d + 4 * x + 6;
-    }
-  }
-}
-
-/**
- * Fill a circle using midpoint circle algorithm with dithered grayscale
- * @param xc Center X coordinate
- * @param yc Center Y coordinate
- * @param r Radius
- * @param level Grayscale level (0-17)
- */
-void fillGrayCircle(int xc, int yc, int r, uint8_t level)
-{
-  int x = 0, y = r;
-  int d = 3 - 2 * r;
-  while (y >= x)
-  {
-    for (int i = xc - x; i <= xc + x; i++)
-    {
-      drawGrayPixel(i, yc + y, level);
-      drawGrayPixel(i, yc - y, level);
-    }
-    for (int i = xc - y; i <= xc + y; i++)
-    {
-      drawGrayPixel(i, yc + x, level);
-      drawGrayPixel(i, yc - x, level);
-    }
-    x++;
-    if (d > 0)
-    {
-      y--;
-      d = d + 4 * (x - y) + 10;
-    }
-    else
-    {
-      d = d + 4 * x + 6;
-    }
-  }
-}
-
-/**
- * Draw a rounded rectangle outline with dithered grayscale
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width
- * @param h Height
- * @param radius Corner radius
- * @param level Grayscale level (0-17)
- */
-void drawGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
-{
-  drawGrayCircle(x + radius, y + radius, radius, level);
-  drawGrayCircle(x + w - radius - 1, y + radius, radius, level);
-  drawGrayCircle(x + radius, y + h - radius - 1, radius, level);
-  drawGrayCircle(x + w - radius - 1, y + h - radius - 1, radius, level);
-  drawGrayRect(x + radius, y, w - 2 * radius, 1, level);
-  drawGrayRect(x + radius, y + h - 1, w - 2 * radius, 1, level);
-  drawGrayRect(x, y + radius, 1, h - 2 * radius, level);
-  drawGrayRect(x + w - 1, y + radius, 1, h - 2 * radius, level);
-}
-
-/**
- * Fill a rounded rectangle with dithered grayscale
- * @param x Top-left X coordinate
- * @param y Top-left Y coordinate
- * @param w Width
- * @param h Height
- * @param radius Corner radius
- * @param level Grayscale level (0-17)
- */
-void fillGrayRoundRect(int x, int y, int w, int h, int radius, uint8_t level)
-{
-  fillGrayRect(x + radius, y, w - 2 * radius, h, level);
-  fillGrayRect(x, y + radius, w, h - 2 * radius, level);
-  fillGrayCircle(x + radius, y + radius, radius, level);
-  fillGrayCircle(x + w - radius - 1, y + radius, radius, level);
-  fillGrayCircle(x + radius, y + h - radius - 1, radius, level);
-  fillGrayCircle(x + w - radius - 1, y + h - radius - 1, radius, level);
-}
+DeviceInformation deviceInformation;
+GitHubProfile profile;
+GitHubStats stats;
 
 float timeTillWakeUp = 3.6e9; // 1 hour in microseconds
 
@@ -273,23 +50,7 @@ void goDeepSleep()
  */
 void failedConnection()
 {
-  display.setFont(&Roboto_Regular_11pt8b);
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.fillRect(302, 142, 196, 196, GxEPD_BLACK);
-    fillGrayRect(430, 142, 68, 98, 7);
-    display.drawBitmap(302, 142, wifi_x_196x196, 196, 196, GxEPD_WHITE);
 
-    int16_t tbx, tby;
-    uint16_t tbw, tbh;
-    display.getTextBounds("WiFi Connection", 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(400 - (tbw / 2), 368); // 30 px top margin
-    display.print("WiFi Connection");
-    display.getTextBounds("failed", 0, 368 + tbh + 30, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(400 - (tbw / 2), tby);
-    display.print("failed");
-  } while (display.nextPage());
   goDeepSleep();
 }
 
@@ -302,23 +63,23 @@ const char *getWiFidesc(int rssi)
 {
   if (rssi == 0)
   {
-    return "No Connection";
+    return getStrings().noConnection;
   }
   else if (rssi >= -50)
   {
-    return "Excellent";
+    return getStrings().excellent;
   }
   else if (rssi >= -60)
   {
-    return "Good";
+    return getStrings().good;
   }
   else if (rssi >= -70)
   {
-    return "Fair";
+    return getStrings().fair;
   }
   else
   { // rssi < -70
-    return "Weak";
+    return getStrings().weak;
   }
 }
 
@@ -360,7 +121,8 @@ void initWiFi()
   Serial.println(" dBm)");
   Serial.println();
   Serial.println("--------------------------------");
-  WiFiStrength = WiFi.RSSI();
+  deviceInformation.WiFi_Strength = WiFi.RSSI();
+  deviceInformation.WiFi_Description = getWiFidesc(WiFi.RSSI());
   delay(10);
 }
 
@@ -405,9 +167,6 @@ String receiveData(const char *URL)
   return payload;
 }
 
-// Current day of week (0=Sunday, 6=Saturday)
-int weekday = 0;
-
 /**
  * Fetch GitHub contribution calendar data using GraphQL API
  * Retrieves one year of contribution data ending on current date
@@ -436,7 +195,7 @@ String receiveChartInformation(String username)
     timeinfo.tm_year -= 1;
     time_t adjusted = mktime(&timeinfo);
 
-    const int n = weekday == 7 ? 0 : weekday;
+    const int n = deviceInformation.weekday == 7 ? 0 : deviceInformation.weekday;
     adjusted -= (time_t)n * 24 * 60 * 60;
 
     localtime_r(&adjusted, &timeinfo);
@@ -510,7 +269,14 @@ void setup()
           timeinfo.tm_hour,
           timeinfo.tm_min,
           timeinfo.tm_sec);
-  weekday = timeinfo.tm_wday;
+  sprintf(deviceInformation.time_string, "%02d/%02d/%04d %02d:%02d:%02d",
+          timeinfo.tm_mday,
+          timeinfo.tm_mon + 1,
+          timeinfo.tm_year + 1900,
+          timeinfo.tm_hour,
+          timeinfo.tm_min,
+          timeinfo.tm_sec);
+  deviceInformation.weekday = timeinfo.tm_wday;
 
   // Fetch GitHub profile data (followers, following, name)
 
@@ -523,12 +289,11 @@ void setup()
     Serial.println(error.c_str());
   }
 
-  followers = doc["followers"].as<int>();
-  following = doc["following"].as<int>();
-  GITHUB_NAME = doc["name"].as<String>();
+  profile.followers = doc["followers"].as<int>();
+  profile.following = doc["following"].as<int>();
+  profile.name = doc["name"].as<String>();
 
   // Array to store daily contribution counts for the past year (53 weeks * 7 days)
-  uint8_t commits[372];
   error = deserializeJson(doc, receiveChartInformation(GITHUB_USERNAME));
   if (error)
   {
@@ -542,15 +307,15 @@ void setup()
   int maxContributions = 0;     // Highest contributions in a single day
   int daysWithContributions = 0; // Total days with at least one contribution
   float avgContributions = 0.0;  // Average contributions per day
-  char *wifiStrengthDesc = (char *)getWiFidesc(WiFiStrength);
+  char *wifiStrengthDesc = (char *)getWiFidesc(deviceInformation.WiFi_Strength);
 
-  contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
+  stats.contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
   for (int i = 0; i <= 371; i++)
   {
-    commits[i] = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>();
+    stats.commits[i] = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>();
 
     // Calculate longest streak
-    if (commits[i] > 0)
+    if (stats.commits[i] > 0)
     {
       streak++;
       if (streak > longestStreak)
@@ -562,27 +327,27 @@ void setup()
     }
 
     // Calculate max contributions in a day
-    if (commits[i] > maxContributions)
+    if (stats.commits[i] > maxContributions)
     {
-      maxContributions = commits[i];
+      maxContributions = stats.commits[i];
     }
 
     // Calculate days with contributions
-    if (commits[i] > 0)
+    if (stats.commits[i] > 0)
     {
       daysWithContributions++;
     }
   }
 
   // Calculate average contributions per day, rounded to 2 decimal places
-  avgContributions = (float)contributions / (365 + weekday);
+  avgContributions = (float)stats.contributions / (365 + deviceInformation.weekday);
   avgContributions = roundf(avgContributions * 100) / 100;
 
   // Calculate current active streak (consecutive days from today backwards)
   int currentStreak = 0;
-  for (int i = 371 - (7 - weekday); i >= 0; i--)
+  for (int i = 371 - (7 - deviceInformation.weekday); i >= 0; i--)
   {
-    if (commits[i] > 0)
+    if (stats.commits[i] > 0)
       currentStreak++;
     else
       break;
@@ -596,112 +361,14 @@ void setup()
     int16_t tbx, tby;   // Text bounding box x, y
     uint16_t tbw, tbh;  // Text bounding box width, height
 
-    // Display GitHub username and full name in footer
-    display.setFont(&Roboto_Regular_6pt8b);
-    display.fillRect(0, 464, 16, 16, GxEPD_BLACK);
-    display.drawBitmap(0, 464, sy_github_16x16, 16, 16, GxEPD_WHITE);
-    display.getTextBounds(String(GITHUB_USERNAME) + " (" + GITHUB_NAME + ")", 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(20, DisplayConfig::Width - tbh * 0.25);
-    display.print(String(GITHUB_USERNAME) + " (" + GITHUB_NAME + ")");
+    // Footer
 
-    // Display current date and time in footer
-    display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(795 - tbw, DisplayConfig::Width - tbh * 0.33);
-    display.print(timeStr);
-    display.fillRect(770 - tbw, 464, 16, 16, GxEPD_BLACK);
-    display.drawBitmap(770 - tbw, 464, wi_time_1_16x16, 16, 16, GxEPD_WHITE);
-
-    // Display WiFi signal strength with appropriate icon
-    display.getTextBounds(String(wifiStrengthDesc) + " (" + WiFiStrength + " dbm)", 770 - tbw, DisplayConfig::Width, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx - 10 - tbw, DisplayConfig::Width - tbh * 0.33);
-    display.print(String(wifiStrengthDesc) + " (" + WiFiStrength + " dBm)");
-    display.fillRect(tbx - 31 - tbw, 464, 16, 16, GxEPD_BLACK);
-
-    if (wifiStrengthDesc == "Excellent")
-    display.drawBitmap(tbx - 31 - tbw, 464, wifi_16x16, 16, 16, GxEPD_WHITE);
-    else if (wifiStrengthDesc == "Good")
-      display.drawBitmap(tbx - 31 - tbw, 464, wifi_3_bar_16x16, 16, 16, GxEPD_WHITE);
-    else if (wifiStrengthDesc == "Fair")
-      display.drawBitmap(tbx - 31 - tbw, 464, wifi_2_bar_16x16, 16, 16, GxEPD_WHITE);
-    else if (wifiStrengthDesc == "Weak")
-      display.drawBitmap(tbx - 31 - tbw, 464, wifi_1_bar_16x16, 16, 16, GxEPD_WHITE);
     
 
-    // Print total contributions
-    fillGrayRoundRect(20, 20, 15, 176, 3, 4);
-    display.setFont(&Roboto_Regular_48pt8b);
-    display.getTextBounds(String(contributions), 50, 216, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx, tby);
-    display.print(contributions);
+    // Statistics
 
-    display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Contributions in the last year", tbx, 0.66 * tby + tbh, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(55, tby + tbh + 10);
-    display.print("Contributions in the last year");
+    // Heatmap
 
-    // Print longest streak
-    fillGrayRoundRect(Layout::LeftCardX, Layout::StatisticsTop, 15, 83, 3, 4);
-    display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(longestStreak), 380, 55, &tbx, &tby, &tbw, &tbh);
-    tby += 1.5 * tbh;
-    display.setCursor(tbx, tby);
-    display.print(longestStreak);
-    display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Longest Streak", tbx, tby, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx, tby + 1.875 * tbh + 5);
-    display.print("Longest Streak");
-
-    // Print max contributions in a day
-    fillGrayRoundRect(Layout::LeftCardX, 113, 15, 83, 3, 4);
-    display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(maxContributions), 380, 148, &tbx, &tby, &tbw, &tbh);
-    tby += 1.5 * tbh;
-    display.setCursor(tbx, tby);
-    display.print(maxContributions);
-    display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Most in a Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx, tby + 1.875 * tbh + 5);
-    display.print("Most in a Day");
-
-    // Print current streak
-    fillGrayRoundRect(Layout::RightCardX, Layout::StatisticsTop, 15, 83, 3, 4);
-    display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(currentStreak), 575, 55, &tbx, &tby, &tbw, &tbh);
-    tby += 1.5 * tbh;
-    display.setCursor(tbx, tby);
-    display.print(currentStreak);
-    display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Current Streak", tbx, tby, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx, tby + 1.875 * tbh + 5);
-    display.print("Current Streak");
-
-    // Print average contributions
-    fillGrayRoundRect(Layout::RightCardX, 113, 15, 83, 3, 4);
-    display.setFont(&Roboto_Regular_24pt8b);
-    display.getTextBounds(String(avgContributions), 575, 148, &tbx, &tby, &tbw, &tbh);
-    tby += 1.5 * tbh;
-    display.setCursor(tbx, tby);
-    display.print(avgContributions);
-    display.setFont(&Roboto_Regular_8pt8b);
-    display.getTextBounds("Average per Day", tbx, tby, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx, tby + 1.875 * tbh + 5);
-    display.print("Average per Day");
-
-    // Render contribution heatmap (53 weeks x 7 days)
-    for (int week = 0; week < 53; week++)
-    {
-      for (int day = 0; day < 7; day++)
-      {
-        if (week == 52 && day > weekday)
-          break;
-        int index = week * 7 + day;
-        if (index >= 371)
-          break;
-        // Map contribution count to grayscale level (3=light, 16=dark)
-        int color = map(commits[index], 0, maxContributions, 3, 16);
-        fillGrayRoundRect(Layout::HeatmapX + week * 15, Layout::HeatmapY + day * 33, 10, 27, 2, color);
-      }
-    }
 
   } while (display.nextPage());
   

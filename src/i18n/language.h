@@ -13,4 +13,5 @@ struct Strings
     const char* good;
     const char* fair;
     const char* weak;
+    const char* noConnection;
 };
