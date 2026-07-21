@@ -11,24 +11,15 @@
 #include <resources/fonts/fonts.h>
 #include <resources/credentials.h>
 
-// E-paper display pin definitions
-#define BSY 4   // Busy pin
-#define RST 16  // Reset pin
-#define DC 17   // Data/Command pin
-#define CS 5    // Chip Select pin
-
-/*
- * Screen Connection
- * BSY  ->  4
- * RST  ->  16
- * DC   ->  17
- * CS   ->  5
- * SCK  ->  18
- * SDI  ->  23
- */
+// Project configs
+#include "config/pins.h"
+#include "config/networkConfig.h"
+#include "config/timeConfig.h"
+#include "config/displayConfig.h"
+#include "config/layout.h"
 
 // Initialize 7.5" e-paper display
-GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(GxEPD2_750_GDEY075T7(CS, DC, RST, BSY));
+GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(GxEPD2_750_GDEY075T7(Pins::CS, Pins::DC, Pins::RST, Pins::BSY));
 
 // Bayer 4x4 dithering matrix for grayscale simulation on black/white display
 const uint8_t bayer4x4[4][4] = {
@@ -269,8 +260,8 @@ void goDeepSleep()
 {
   display.hibernate();
   // Go to deep sleep for 1 hour (3.6e9 microseconds = 3,600,000,000 µs)
-  Serial.println(timeTillWakeUp / 1e6);
-  esp_sleep_enable_timer_wakeup(timeTillWakeUp);
+  Serial.println(TimeConfig::SleepTime / 1e6);
+  esp_sleep_enable_timer_wakeup(TimeConfig::SleepTime);
   Serial.println("ESP goes to deep sleep now");
   Serial.flush();
   esp_deep_sleep_start();
@@ -338,7 +329,7 @@ const char *getWiFidesc(int rssi)
  */
 void initWiFi()
 {
-  WiFi.setHostname("PixelPioneer GitHub ePaper Screen");
+  WiFi.setHostname(Network::Hostname);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   float connectionBegin = millis();
@@ -346,7 +337,7 @@ void initWiFi()
   {
     Serial.print(".");
     delay(200);
-    if (millis() - connectionBegin >= 30000)
+    if (millis() - connectionBegin >= Network::Timeout)
     {
       failedConnection();
     }
@@ -610,19 +601,19 @@ void setup()
     display.fillRect(0, 464, 16, 16, GxEPD_BLACK);
     display.drawBitmap(0, 464, sy_github_16x16, 16, 16, GxEPD_WHITE);
     display.getTextBounds(String(GITHUB_USERNAME) + " (" + GITHUB_NAME + ")", 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(20, 480 - tbh * 0.25);
+    display.setCursor(20, DisplayConfig::Width - tbh * 0.25);
     display.print(String(GITHUB_USERNAME) + " (" + GITHUB_NAME + ")");
 
     // Display current date and time in footer
     display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(795 - tbw, 480 - tbh * 0.33);
+    display.setCursor(795 - tbw, DisplayConfig::Width - tbh * 0.33);
     display.print(timeStr);
     display.fillRect(770 - tbw, 464, 16, 16, GxEPD_BLACK);
     display.drawBitmap(770 - tbw, 464, wi_time_1_16x16, 16, 16, GxEPD_WHITE);
 
     // Display WiFi signal strength with appropriate icon
-    display.getTextBounds(String(wifiStrengthDesc) + " (" + WiFiStrength + " dbm)", 770 - tbw, 480, &tbx, &tby, &tbw, &tbh);
-    display.setCursor(tbx - 10 - tbw, 480 - tbh * 0.33);
+    display.getTextBounds(String(wifiStrengthDesc) + " (" + WiFiStrength + " dbm)", 770 - tbw, DisplayConfig::Width, &tbx, &tby, &tbw, &tbh);
+    display.setCursor(tbx - 10 - tbw, DisplayConfig::Width - tbh * 0.33);
     display.print(String(wifiStrengthDesc) + " (" + WiFiStrength + " dBm)");
     display.fillRect(tbx - 31 - tbw, 464, 16, 16, GxEPD_BLACK);
 
@@ -649,7 +640,7 @@ void setup()
     display.print("Contributions in the last year");
 
     // Print longest streak
-    fillGrayRoundRect(350, 20, 15, 83, 3, 4);
+    fillGrayRoundRect(Layout::LeftCardX, Layout::StatisticsTop, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(longestStreak), 380, 55, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -661,7 +652,7 @@ void setup()
     display.print("Longest Streak");
 
     // Print max contributions in a day
-    fillGrayRoundRect(350, 113, 15, 83, 3, 4);
+    fillGrayRoundRect(Layout::LeftCardX, 113, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(maxContributions), 380, 148, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -673,7 +664,7 @@ void setup()
     display.print("Most in a Day");
 
     // Print current streak
-    fillGrayRoundRect(555, 20, 15, 83, 3, 4);
+    fillGrayRoundRect(Layout::RightCardX, Layout::StatisticsTop, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(currentStreak), 575, 55, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -685,7 +676,7 @@ void setup()
     display.print("Current Streak");
 
     // Print average contributions
-    fillGrayRoundRect(555, 113, 15, 83, 3, 4);
+    fillGrayRoundRect(Layout::RightCardX, 113, 15, 83, 3, 4);
     display.setFont(&Roboto_Regular_24pt8b);
     display.getTextBounds(String(avgContributions), 575, 148, &tbx, &tby, &tbw, &tbh);
     tby += 1.5 * tbh;
@@ -708,7 +699,7 @@ void setup()
           break;
         // Map contribution count to grayscale level (3=light, 16=dark)
         int color = map(commits[index], 0, maxContributions, 3, 16);
-        fillGrayRoundRect(5 + week * 15, 220 + day * 33, 10, 27, 2, color);
+        fillGrayRoundRect(Layout::HeatmapX + week * 15, Layout::HeatmapY + day * 33, 10, 27, 2, color);
       }
     }
 
