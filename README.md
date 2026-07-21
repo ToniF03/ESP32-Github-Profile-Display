@@ -3,7 +3,7 @@
 A beautiful e-paper display that shows your GitHub contribution statistics on a 7.5" e-ink screen. The ESP32 fetches your GitHub profile data via WiFi and renders an elegant dashboard with a contribution heatmap, streaks, and detailed statistics—all with ultra-low power consumption thanks to deep sleep mode.
 
 ![Project Preview](preview.jpg)
-*Add your project photo here to showcase the display*
+*To be added*
 
 ## Features
 
@@ -318,25 +318,17 @@ Planned features and improvements:
   - [ ] Display follower/following counts
   - [ ] Show repository count and total stars
   - [ ] Add language breakdown chart
-  - [ ] Customizable themes (dark mode, color schemes)
 
 - [ ] **Power Management**
   
   - [ ] Battery voltage monitoring and low-battery warning
   - [ ] Adaptive update intervals based on battery level
-  - [ ] Solar panel integration support
 
 - [ ] **Configuration**
   
   - [ ] Web-based configuration portal (WiFi manager)
-  - [ ] OTA (Over-The-Air) firmware updates
   - [ ] Multiple GitHub account profiles with switching
-
-- [ ] **Display Optimization**
-  
-  - [ ] Partial refresh support for faster updates
-  - [ ] Red/black/white display variant support
-  - [ ] Multiple display size support
+  - [ ] Multi-Language Support
 
 - [ ] **Features**
   
