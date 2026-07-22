@@ -328,7 +328,7 @@ Planned features and improvements:
   
   - [ ] Web-based configuration portal (WiFi manager)
   - [ ] Multiple GitHub account profiles with switching
-  - [ ] Multi-Language Support
+  - [x] Multi-Language Support
 
 - [ ] **Features**
   
