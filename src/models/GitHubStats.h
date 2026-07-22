@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Data model for storing GitHub profile statistics used by the ESP32 dashboard and status screens
+ */
+
 #pragma once
 
 struct GitHubStats

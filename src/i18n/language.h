@@ -1,3 +1,11 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Declaration of localized string identifiers used by the ESP32
+ *              GitHub profile display and status screens (i18n strings).
+ */
+
 #pragma once
 
 struct Strings

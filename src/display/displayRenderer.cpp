@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Rendering logic for the ESP32 GitHub profile dashboard and status screens
+ */
+
 #include <resources/icons/icons.h>
 #include <resources/fonts/fonts.h>
 

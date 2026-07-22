@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Device information model for battery, WiFi, and time data
+ */
+
 #pragma once
 
 #include <Arduino.h>

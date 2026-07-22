@@ -1,3 +1,11 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Dithering and grayscale rendering utilities for drawing
+ *              pixels and geometric shapes on the target display.
+ */
+
 #pragma once
 
 #include "../config/DisplayConfig.h"

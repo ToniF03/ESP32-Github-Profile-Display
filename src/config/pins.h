@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Pin definitions for the ESP32 GitHub profile display
+ */
+
 #pragma once
 
 #include <Arduino.h>

@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Dithering helpers for drawing grayscale primitives on the ESP32 display
+ */
+
 #include <Arduino.h>
 #include "dithering.h"
 #include "../config/displayConfig.h"

@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Layout constants for positioning the ESP32 GitHub profile dashboard and status screens
+ */
+
 #pragma once
 
 #include <Arduino.h>

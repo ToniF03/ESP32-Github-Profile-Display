@@ -1,3 +1,10 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Internationalization string selection for the ESP32 GitHub profile dashboard
+ */
+
 #pragma once
 
 #include "../settings/settings.h"

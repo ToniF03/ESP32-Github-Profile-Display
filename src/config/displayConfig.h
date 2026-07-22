@@ -1,3 +1,11 @@
+/*
+ * Created on: 2026-07-22
+ * Author(s): Toni Fey
+ * License: MIT
+ * Description: Display configuration for the ESP32 GitHub profile project — defines the
+ *              e-paper display type alias and compile-time width/height constants.
+ */
+
 #pragma once
 
 #include <Arduino.h>

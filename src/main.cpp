@@ -1,3 +1,10 @@
+/*
+* Created on: 2025-09-17
+* Author(s): Toni Fey
+* License: MIT
+ * Description: ESP32 GitHub profile display for contribution stats and streaks
+*/
+
 // Libraries for ESP32 functionality
 #include <ArduinoJson.h>       // JSON parsing for API responses
 #include <GxEPD2_BW.h>         // E-paper display driver
