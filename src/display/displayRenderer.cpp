@@ -22,6 +22,15 @@ DisplayRenderer::DisplayRenderer(DisplayConfig::DisplayType &display)
 {
 }
 
+void DisplayRenderer::init(const int rotation,
+                           const uint16_t textColor)
+{
+    display.init();
+    display.setRotation(rotation);
+    display.setTextColor(textColor);
+    display.firstPage();
+}
+
 void DisplayRenderer::drawDashboard(const GitHubStats &stats,
                                     const GitHubProfile &profile,
                                     const DeviceInformation &deviceInformation)

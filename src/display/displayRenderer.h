@@ -21,6 +21,7 @@ public:
                        const GitHubProfile &profile,
                        const DeviceInformation &deviceInformation);
     void drawConnectionError();
+    void init(const int rotation, const uint16_t textColor);
 
 private:
     DisplayConfig::DisplayType &display;
