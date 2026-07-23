@@ -4,16 +4,6 @@
  * License: MIT
  * Description: Rendering logic for the ESP32 GitHub profile dashboard and status screens
  */
-
-#include <resources/icons/icons.h>
-#include <resources/fonts/fonts.h>
-
-#include "../config/displayConfig.h"
-#include "../config/layout.h"
-#include "../i18n/i18n.h"
-#include "../models/GitHubProfile.h"
-#include "../models/GitHubStats.h"
-#include "../models/deviceInformation.h"
 #include "displayRenderer.h"
 
 DisplayRenderer::DisplayRenderer(DisplayConfig::DisplayType &display)

@@ -7,9 +7,16 @@
 
 #pragma once
 
+#include <resources/icons/icons.h>
+#include <resources/fonts/fonts.h>
+
 #include "../config/displayConfig.h"
+#include "../config/layout.h"
+#include "../i18n/i18n.h"
 #include "../models/GitHubProfile.h"
 #include "../models/GitHubStats.h"
+#include "../models/deviceInformation.h"
+
 #include "dithering.h"
 
 class DisplayRenderer

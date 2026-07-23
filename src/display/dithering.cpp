@@ -5,9 +5,7 @@
  * Description: Dithering helpers for drawing grayscale primitives on the ESP32 display
  */
 
-#include <Arduino.h>
 #include "dithering.h"
-#include "../config/displayConfig.h"
 
 Dithering::Dithering(DisplayConfig::DisplayType &display)
     : display(display)

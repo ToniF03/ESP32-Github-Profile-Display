@@ -8,7 +8,10 @@
 
 #pragma once
 
-#include "../config/DisplayConfig.h"
+#include <Arduino.h>
+
+#include "dithering.h"
+#include "../config/displayConfig.h"
 
 class Dithering
 {
