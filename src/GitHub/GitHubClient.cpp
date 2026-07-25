@@ -2,7 +2,7 @@
  * Created on: 2026-07-23
  * Author(s): Toni Fey
  * License: MIT
- * Description:
+ * Description: GitHub API client for fetching user profile, repositories, and repository data via HTTPS
  */
 
 #include "GitHubClient.h"

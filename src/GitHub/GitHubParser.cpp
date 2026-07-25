@@ -2,7 +2,7 @@
  * Created on: 2026-07-23
  * Author(s): Toni Fey
  * License: MIT
- * Description:
+ * Description: Parses GitHub profile and repository data from the GitHub API for display.
  */
 
 #include "GitHubParser.h"

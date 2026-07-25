@@ -2,7 +2,7 @@
  * Created on: 2026-07-23
  * Author(s): Toni Fey
  * License: MIT
- * Description:
+ * Description: GitHub API client for ESP32 to fetch user profile, repository, and contribution heatmap data
  */
 
 #include <Arduino.h>

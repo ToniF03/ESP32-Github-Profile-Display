@@ -2,7 +2,7 @@
  * Created on: 2026-07-23
  * Author(s): Toni Fey
  * License: MIT
- * Description:
+ * Description: Parser for GitHub API responses to extract profile, stats, and repository data
  */
 
 #pragma once
