@@ -27,9 +27,6 @@
 #include "display/displayRenderer.h"
 #include "time/TimeManager.h"
 
-// Initialize 7.5" e-paper display
-GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(GxEPD2_750_GDEY075T7(Pins::CS, Pins::DC, Pins::RST, Pins::BSY));
-
 DeviceInformation deviceInformation;
 GitHubProfile profile;
 GitHubStats stats;

@@ -20,6 +20,8 @@ namespace DisplayConfig
             GxEPD2_750_GDEY075T7,
             GxEPD2_750_GDEY075T7::HEIGHT>;
 
+    using DisplayModel = GxEPD2_750_GDEY075T7;
+
     constexpr uint16_t Width = 800;
     constexpr uint16_t Height = 480;
 }
