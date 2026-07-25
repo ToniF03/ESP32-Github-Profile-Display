@@ -27,8 +27,9 @@ public:
     void drawDashboard(const GitHubStats &stats,
                        const GitHubProfile &profile,
                        const DeviceInformation &deviceInformation);
-    void drawConnectionError();
+    inline void drawConnectionError();
     void init(const int rotation, const uint16_t textColor);
+    void hibernate();
 
 private:
     DisplayConfig::DisplayType &display;

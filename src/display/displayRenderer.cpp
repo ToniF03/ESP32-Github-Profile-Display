@@ -184,3 +184,7 @@ void DisplayRenderer::drawHeatmap(const GitHubStats &stats, const DeviceInformat
         }
     }
 }
+
+inline void DisplayRenderer::hibernate() {
+    display.hibernate();
+}

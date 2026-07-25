@@ -43,9 +43,8 @@ TimeManager tm;
  */
 void goDeepSleep()
 {
-  display.hibernate();
+  renderer.hibernate();
   // Go to deep sleep for 1 hour (3.6e9 microseconds = 3,600,000,000 µs)
-  Serial.println(TimeConfig::SleepTime / 1e6);
   esp_sleep_enable_timer_wakeup(TimeConfig::SleepTime);
   Serial.println("ESP goes to deep sleep now");
   Serial.flush();
