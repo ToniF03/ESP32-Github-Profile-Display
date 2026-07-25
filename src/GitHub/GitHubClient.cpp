@@ -19,7 +19,8 @@ String GitHubClient::getReposData(const String User)
     return reposJson;
 }
 
-String GitHubClient:: getRepoData(const String repo, const String User) {
+String GitHubClient::getRepoData(const String repo, const String User)
+{
     String repoJson = receiveData(String(String(reposURL) + User + "/" + repo).c_str());
     return repoJson;
 }
@@ -58,6 +59,71 @@ String GitHubClient::receiveData(const char *URL)
     else
     {
         Serial.println("[HTTPS] Unable to connect");
+    }
+    return response;
+}
+
+String GitHubClient::getStatisticsData(const String User)
+{
+    HTTPHeader *header;
+    header[0] = HTTPHeader{"Authorization", String("Bearer ") + GITHUB_PAT};
+    header[1] = HTTPHeader{"Content-Type", "application/json"};
+
+    String date1;
+    char date2[10];
+
+    TimeManager time;
+    time.begin();
+
+    date1 = time.getFormattedDate();
+
+    tm date2Raw = time.getLocalTime();
+
+    time_t adjusted = mktime(&date2Raw);
+    const int n = time.getWeekday() == 7 ? 0 : time.getWeekday();
+    adjusted -= (time_t)n * 24 * 60 * 60;
+
+    localtime_r(&adjusted, &date2Raw);
+
+    sprintf(date2, "%04d-%02d-%02d",
+            date2Raw.tm_year + 1899,
+            date2Raw.tm_mon + 1,
+            date2Raw.tm_mday);
+
+    String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + User + "\\\") { contributionsCollection(from: \\\"" + String(date2) + "T00:00:00Z\\\", to: \\\"" + date1 + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }\"}";
+
+    String heatmapJson = receiveHTTPSData(graphQLBaseURL, graphQLQuery, header);
+}
+
+String GitHubClient::receiveHTTPSData(const char *URL, const String query, const HTTPHeader *header)
+{
+    String response;
+    WiFiClientSecure client;
+    client.setInsecure();
+
+    HTTPClient https;
+    if (https.begin(client, URL))
+    {
+        for (int i = 0; i < sizeof(header) / sizeof(header[0]); i++)
+        {
+            https.addHeader(header[i].key, header[i].value);
+        }
+
+        int httpCode = https.POST(query); // Perform the GET request
+
+        if (httpCode > 0)
+        {
+            if (httpCode == HTTP_CODE_OK)
+            {
+                response = https.getString();
+            }
+        }
+        else
+        {
+            Serial.printf("[HTTPS] GET failed, error: %s\n", https.errorToString(httpCode).c_str());
+        }
+
+        https.end(); // Free resources
     }
     return response;
 }

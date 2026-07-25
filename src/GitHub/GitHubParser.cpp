@@ -79,7 +79,8 @@ GitHubRepo *GitHubParser::getRepos(const String User, const int amount)
     return repos;
 }
 
-GitHubRepo GitHubParser::getRepo(const String repoName) {
+GitHubRepo GitHubParser::getRepo(const String repoName)
+{
     return getRepo(repoName, _user);
 }
 
@@ -107,6 +108,56 @@ GitHubRepo GitHubParser::getRepo(const String repoName, const String User)
     return repo;
 }
 
-GitHubStats GitHubParser::getHeatmap() {
-    
+GitHubStats GitHubParser::getStatistics(const uint8_t currentWeekday)
+{
+    String statsJson = client.getStatisticsData(_user);
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, statsJson);
+    GitHubStats stats;
+
+    if (error)
+    {
+        Serial.print("Error occured while fetching profile statistics: ");
+        Serial.println(error.c_str());
+    }
+
+    // Initialize statistics variables
+    int streak = 0;                // Temporary streak counter
+
+    stats.contributions = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"].as<int>();
+    for (int i = 0; i <= 371; i++)
+    {
+        stats.commits[i] = doc["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"][i / 7]["contributionDays"][i % 7]["contributionCount"].as<int>();
+
+        // Calculate longest streak
+        if (stats.commits[i] > 0)
+        {
+            streak++;
+            if (streak > stats.longestStreak)
+                stats.longestStreak = streak;
+        }
+        else
+        {
+            streak = 0;
+        }
+
+        // Calculate max contributions in a day
+        if (stats.commits[i] > stats.maxContributions)
+        {
+            stats.maxContributions = stats.commits[i];
+        }
+    }
+
+    // Calculate average contributions per day, rounded to 2 decimal places
+    stats.averageContributions = (float)stats.contributions / (365 + currentWeekday);
+    stats.averageContributions = roundf(stats.averageContributions * 100) / 100;
+
+    // Calculate current active streak (consecutive days from today backwards)
+    for (int i = 371 - (7 - currentWeekday); i >= 0; i--)
+    {
+        if (stats.commits[i] > 0)
+            stats.currentStreak++;
+        else
+            break;
+    }
 }

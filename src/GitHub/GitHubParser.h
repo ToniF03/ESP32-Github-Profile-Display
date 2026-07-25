@@ -20,7 +20,7 @@ public:
     explicit GitHubParser(const String User);
     GitHubProfile getProfile();
     GitHubProfile getProfile(const String User);
-    GitHubStats getHeatmap();
+    GitHubStats getStatistics(const uint8_t currentWeekday);
     GitHubRepo getRepo(const String repoName);
     GitHubRepo getRepo(const String repoName, const String User);
     GitHubRepo* getRepos(int amount);
