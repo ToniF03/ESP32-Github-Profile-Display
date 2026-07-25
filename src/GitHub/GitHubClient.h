@@ -22,6 +22,6 @@ public:
 
 private:
     char *profileURL = "https://api.github.com/users/";
-    char *reposURL = "https://api.github.com/users/";
+    char *reposURL = "https://api.github.com/repos/";
     String receiveData(const char *URL);
 };
