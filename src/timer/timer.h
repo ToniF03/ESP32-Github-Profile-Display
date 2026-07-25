@@ -17,6 +17,6 @@ public:
     float elapsed();
 
 private:
-    float startTime = -1;
-    bool started = true;
+    float _startTime = -1;
+    bool _started = true;
 };

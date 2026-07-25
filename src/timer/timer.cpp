@@ -9,19 +9,19 @@
 
 void Timer::begin()
 {
-    if (!started)
+    if (!_started)
     {
-        startTime = millis();
-        started = true;
+        _startTime = millis();
+        _started = true;
     }
 }
 
 void Timer::reset()
 {
-    if (started)
-        startTime = millis();
+    if (_started)
+        _startTime = millis();
 }
 
 float Timer::elapsed() {
-    return millis() - startTime;
+    return millis() - _startTime;
 }
