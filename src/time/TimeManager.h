@@ -22,6 +22,7 @@ public:
     String getFormattedTime() const;
     String getFormattedDateTime() const;
     uint64_t getSleepDurationUs() const;
+    uint8_t getWeekday() const;
 
 private:
     bool _synchronized = false;

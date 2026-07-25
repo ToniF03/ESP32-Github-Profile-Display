@@ -90,3 +90,9 @@ uint64_t TimeManager::getSleepDurationUs() const
 
     return timeTillWakeUp;
 }
+
+uint8_t TimeManager::getWeekday() const {
+    tm time;
+    ::getLocalTime(&time);
+    return time.tm_wday;
+}
