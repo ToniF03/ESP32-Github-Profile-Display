@@ -21,8 +21,7 @@ GitHubProfile GitHubParser::getProfile(const String User)
 {
     GitHubProfile profile;
     JsonDocument doc;
-    String profileJson = client.getProfileData(User);
-    DeserializationError error = deserializeJson(doc, profileJson);
+    DeserializationError error = deserializeJson(doc, client.getProfileData(User));
 
     if (error)
     {
@@ -54,8 +53,7 @@ GitHubRepo *GitHubParser::getRepos(const String User, const int amount)
 {
     GitHubRepo repos[amount];
     JsonDocument doc;
-    String reposJson = client.getReposData(User);
-    DeserializationError error = deserializeJson(doc, reposJson);
+    DeserializationError error = deserializeJson(doc, client.getReposData(User));
 
     if (error)
     {
@@ -88,8 +86,7 @@ GitHubRepo GitHubParser::getRepo(const String repoName, const String User)
 {
     GitHubRepo repo;
     JsonDocument doc;
-    String repoJson = client.getReposData(User);
-    DeserializationError error = deserializeJson(doc, repoJson);
+    DeserializationError error = deserializeJson(doc, client.getReposData(User));
 
     if (error)
     {
@@ -110,9 +107,8 @@ GitHubRepo GitHubParser::getRepo(const String repoName, const String User)
 
 GitHubStats GitHubParser::getStatistics(const uint8_t currentWeekday)
 {
-    String statsJson = client.getStatisticsData(_user);
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, statsJson);
+    DeserializationError error = deserializeJson(doc, client.getStatisticsData(_user));
     GitHubStats stats;
 
     if (error)
