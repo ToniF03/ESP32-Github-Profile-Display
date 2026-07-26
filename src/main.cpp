@@ -5,9 +5,6 @@
  * Description: ESP32 GitHub profile display for contribution stats and streaks
  */
 
-// Libraries for ESP32 functionality
-#include <WiFi.h> // WiFi connectivity
-
 // Project resources
 #include <resources/credentials.h>
 
@@ -26,6 +23,7 @@
 #include "models/GitHubStats.h"
 #include "display/displayRenderer.h"
 #include "time/TimeManager.h"
+#include "WiFiManager/WiFiManager.h"
 
 DeviceInformation deviceInformation;
 GitHubProfile profile;
@@ -33,6 +31,7 @@ GitHubStats stats;
 GitHubParser ghParser(GITHUB_USERNAME);
 DisplayRenderer renderer;
 TimeManager tm;
+WiFiManager wifimg;
 
 /**
  * Put the ESP32 into deep sleep mode to save power
@@ -49,88 +48,6 @@ void goDeepSleep()
 }
 
 /**
- * Display a WiFi connection failure message on the e-paper screen
- * and then enter deep sleep mode
- */
-void failedConnection()
-{
-  renderer.drawConnectionError();
-  goDeepSleep();
-}
-
-/**
- * Convert WiFi signal strength (RSSI) to human-readable description
- * @param rssi Signal strength in dBm
- * @return String description of signal quality
- */
-const char *getWiFidesc(int rssi)
-{
-  if (rssi == 0)
-  {
-    return getStrings().noConnection;
-  }
-  else if (rssi >= -50)
-  {
-    return getStrings().excellent;
-  }
-  else if (rssi >= -60)
-  {
-    return getStrings().good;
-  }
-  else if (rssi >= -70)
-  {
-    return getStrings().fair;
-  }
-  else
-  { // rssi < -70
-    return getStrings().weak;
-  }
-}
-
-/**
- * Initialize WiFi connection with timeout and error handling
- * Sets hostname and connects to configured network
- * Calls failedConnection() if unable to connect within 30 seconds
- */
-void initWiFi()
-{
-  WiFi.setHostname(Network::Hostname);
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  float connectionBegin = millis();
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(200);
-    if (millis() - connectionBegin >= Network::Timeout)
-    {
-      failedConnection();
-    }
-  }
-  Serial.println();
-  Serial.println("--------------------------------");
-  Serial.println();
-  Serial.print("Connected to ");
-  Serial.println(WiFi.SSID());
-  Serial.print("Connected as ");
-  Serial.println(WiFi.getHostname());
-  Serial.print("Local IP: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("MAC-Address: ");
-  Serial.println(WiFi.macAddress());
-  Serial.print("Connection Strength: ");
-  Serial.print(getWiFidesc(WiFi.RSSI()));
-  Serial.print(" (");
-  Serial.print(WiFi.RSSI());
-  Serial.println(" dBm)");
-  Serial.println();
-  Serial.println("--------------------------------");
-  deviceInformation.WiFi_Strength = WiFi.RSSI();
-  deviceInformation.WiFi_Description = getWiFidesc(WiFi.RSSI());
-  delay(10);
-}
-
-/**
  * Setup function - runs once at startup
  * Initializes display, connects to WiFi, fetches GitHub data,
  * renders the display, and enters deep sleep
@@ -141,7 +58,13 @@ void setup()
 
   renderer.init(0, GxEPD_BLACK);
 
-  initWiFi();
+  if (!wifimg.init()) {
+    renderer.drawConnectionError();
+    goDeepSleep();
+  }
+
+  deviceInformation.WiFi_Strength = wifimg.RSSI();
+  deviceInformation.WiFi_Description = wifimg.getWiFidesc();
 
   tm.begin();
 
