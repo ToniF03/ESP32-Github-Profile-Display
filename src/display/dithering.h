@@ -39,7 +39,7 @@ private:
 
     bool isPixelBlack(uint16_t x, uint16_t y, uint8_t level);
 
-    static constexpr uint8_t Bayer4x4[4][4] =
+    const uint8_t Bayer4x4[4][4] =
         {
             {0, 8, 2, 10},
             {12, 4, 14, 6},

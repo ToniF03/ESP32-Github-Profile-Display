@@ -26,10 +26,13 @@ public:
     int8_t RSSI();
 
 private:
-    RTC_DATA_ATTR uint8_t storedBSSID[6];
-    RTC_DATA_ATTR int32_t storedChannel = 0;
-    RTC_DATA_ATTR uint32_t storedIP = 0;
-    RTC_DATA_ATTR uint32_t storedGateway = 0;
-    RTC_DATA_ATTR uint32_t storedSubnet = 0;
-    RTC_DATA_ATTR uint32_t storedDNS = 0;
+    // RTC_DATA_ATTR is a section attribute and cannot be applied to non-static
+    // class members. Use inline static so these have static storage and can
+    // safely be placed in RTC memory when the attribute is supported.
+    inline static RTC_DATA_ATTR uint8_t storedBSSID[6] = {0};
+    inline static RTC_DATA_ATTR int32_t storedChannel = 0;
+    inline static RTC_DATA_ATTR uint32_t storedIP = 0;
+    inline static RTC_DATA_ATTR uint32_t storedGateway = 0;
+    inline static RTC_DATA_ATTR uint32_t storedSubnet = 0;
+    inline static RTC_DATA_ATTR uint32_t storedDNS = 0;
 };

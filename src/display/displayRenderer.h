@@ -25,8 +25,8 @@ class DisplayRenderer
 public:
     explicit DisplayRenderer();
 
-    void drawDashboard(const GitHubStats &stats,
-                       const GitHubProfile &profile,
+    void drawDashboard(const GitHubStats *stats,
+                       const GitHubProfile *profile,
                        const DeviceInformation &deviceInformation);
     void drawConnectionError();
     void init(const int rotation, const uint16_t textColor);
@@ -37,8 +37,8 @@ private:
 
     Dithering _dithering;
 
-    void drawStatistics(const GitHubStats &stats);
-    void drawHeatmap(const GitHubStats &stats, const DeviceInformation &deviceInformation);
-    void drawFooter(const GitHubProfile &profile,
+    void drawStatistics(const GitHubStats *stats);
+    void drawHeatmap(const GitHubStats *stats, const DeviceInformation &deviceInformation);
+    void drawFooter(const GitHubProfile *profile,
                     const DeviceInformation &deviceInformation);
 };

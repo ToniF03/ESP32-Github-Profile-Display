@@ -65,9 +65,9 @@ String GitHubClient::receiveData(const char *URL)
 
 String GitHubClient::getStatisticsData(const String User)
 {
-    HTTPHeader *header;
-    header[0] = HTTPHeader{"Authorization", String("Bearer ") + GITHUB_PAT};
-    header[1] = HTTPHeader{"Content-Type", "application/json"};
+    HTTPHeader headers[] = {
+        {"Authorization", String("Bearer ") + GITHUB_PAT},
+        {"Content-Type", "application/json"}};
 
     String date1;
     char date2[10];
@@ -92,7 +92,7 @@ String GitHubClient::getStatisticsData(const String User)
 
     String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + User + "\\\") { contributionsCollection(from: \\\"" + String(date2) + "T00:00:00Z\\\", to: \\\"" + date1 + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }\"}";
 
-    String heatmapJson = receiveHTTPSData(graphQLBaseURL, graphQLQuery, header);
+    return receiveHTTPSData(graphQLBaseURL, graphQLQuery, headers);
 }
 
 String GitHubClient::receiveHTTPSData(const char *URL, const String query, const HTTPHeader *header)

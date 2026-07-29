@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Roboto_Regular/Roboto_Regular_4pt8b.h"
 #include "Roboto_Regular/Roboto_Regular_5pt8b.h"
 #include "Roboto_Regular/Roboto_Regular_6pt8b.h"

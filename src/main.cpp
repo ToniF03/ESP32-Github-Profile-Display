@@ -26,8 +26,8 @@
 #include "WiFiManager/WiFiManager.h"
 
 DeviceInformation deviceInformation;
-GitHubProfile profile;
-GitHubStats stats;
+GitHubProfile *profile;
+GitHubStats *stats;
 GitHubParser ghParser(GITHUB_USERNAME);
 DisplayRenderer renderer;
 TimeManager tm;
@@ -72,8 +72,9 @@ void setup()
   Serial.println(tm.getFormattedDateTime());
   strcpy(deviceInformation.time_string, tm.getFormattedDateTime().c_str());
   deviceInformation.weekday = tm.getWeekday();
-
+  Serial.print("Check 1");
   profile = ghParser.getProfile();
+  Serial.print("Check 2");
   stats = ghParser.getStatistics(deviceInformation.weekday);
 
   // Draw the GitHub Dashboard
