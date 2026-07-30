@@ -14,15 +14,15 @@ GitHubParser::GitHubParser(const String User)
 
 GitHubProfile *GitHubParser::getProfile()
 {
-    getProfile(_user);
+    return getProfile(_user);
 }
 
 GitHubProfile *GitHubParser::getProfile(const String User)
 {
     GitHubProfile *profile = new GitHubProfile;
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, client.getProfileData(User));
-
+    String profileJson = client.getProfileData(User);
+    DeserializationError error = deserializeJson(doc, profileJson);
     if (error)
     {
         Serial.print("Error occured while fetching the profile: ");
@@ -30,7 +30,7 @@ GitHubProfile *GitHubParser::getProfile(const String User)
         return nullptr;
     }
 
-    profile->followers = doc["followers"].as<int>();
+    profile->followers = doc["followers"].as<int>();    
     profile->following = doc["following"].as<int>();
     profile->publicGists = doc["public_gists"].as<int>();
     profile->publicRepos = doc["public_repos"].as<int>();
@@ -108,7 +108,8 @@ GitHubRepo *GitHubParser::getRepo(const String repoName, const String User)
 GitHubStats *GitHubParser::getStatistics(const uint8_t currentWeekday)
 {
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, client.getStatisticsData(_user));
+    String statsJson = client.getStatisticsData(_user);
+    DeserializationError error = deserializeJson(doc, statsJson);
     GitHubStats *stats = new GitHubStats;
 
     if (error)
@@ -156,4 +157,6 @@ GitHubStats *GitHubParser::getStatistics(const uint8_t currentWeekday)
         else
             break;
     }
+
+    return stats;
 }

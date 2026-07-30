@@ -30,5 +30,5 @@ private:
     char *reposURL = "https://api.github.com/repos/";
     char *graphQLBaseURL = "https://api.github.com/graphql";
     String receiveData(const char *URL);
-    String receiveHTTPSData(const char *URL, const String query, const HTTPHeader *header);
+    String receiveHTTPSData(const char *URL, const String query, const HTTPHeader header[], const int HeaderSize);
 };

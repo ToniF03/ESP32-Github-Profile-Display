@@ -69,33 +69,36 @@ String GitHubClient::getStatisticsData(const String User)
         {"Authorization", String("Bearer ") + GITHUB_PAT},
         {"Content-Type", "application/json"}};
 
-    String date1;
-    char date2[10];
+    char date1[11];
+    char date2[11];
 
     TimeManager time;
     time.begin();
 
-    date1 = time.getFormattedDate();
+    tm dateRaw = time.getLocalTime();
 
-    tm date2Raw = time.getLocalTime();
+    sprintf(date1, "%04d-%02d-%02d",
+            dateRaw.tm_year + 1900,
+            dateRaw.tm_mon + 1,
+            dateRaw.tm_mday);
 
-    time_t adjusted = mktime(&date2Raw);
+    time_t adjusted = mktime(&dateRaw);
     const int n = time.getWeekday() == 7 ? 0 : time.getWeekday();
     adjusted -= (time_t)n * 24 * 60 * 60;
 
-    localtime_r(&adjusted, &date2Raw);
+    localtime_r(&adjusted, &dateRaw);
 
     sprintf(date2, "%04d-%02d-%02d",
-            date2Raw.tm_year + 1899,
-            date2Raw.tm_mon + 1,
-            date2Raw.tm_mday);
+            dateRaw.tm_year + 1899,
+            dateRaw.tm_mon + 1,
+            dateRaw.tm_mday);
+            
+    String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + User + "\\\") { contributionsCollection(from: \\\"" + String(date2) + "T00:00:00Z\\\", to: \\\"" + String(date1) + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }\"}";
 
-    String graphQLQuery = String("{\"query\":\"query { user(login: \\\"") + User + "\\\") { contributionsCollection(from: \\\"" + String(date2) + "T00:00:00Z\\\", to: \\\"" + date1 + "T23:59:59Z\\\") { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }\"}";
-
-    return receiveHTTPSData(graphQLBaseURL, graphQLQuery, headers);
+    return receiveHTTPSData(graphQLBaseURL, graphQLQuery, headers, 2);
 }
 
-String GitHubClient::receiveHTTPSData(const char *URL, const String query, const HTTPHeader *header)
+String GitHubClient::receiveHTTPSData(const char *URL, const String query, const HTTPHeader header[], const int HeaderSize)
 {
     String response;
     WiFiClientSecure client;
@@ -104,7 +107,7 @@ String GitHubClient::receiveHTTPSData(const char *URL, const String query, const
     HTTPClient https;
     if (https.begin(client, URL))
     {
-        for (int i = 0; i < sizeof(header) / sizeof(header[0]); i++)
+        for (int i = 0; i < HeaderSize; i++)
         {
             https.addHeader(header[i].key, header[i].value);
         }

@@ -58,7 +58,8 @@ void setup()
 
   renderer.init(0, GxEPD_BLACK);
 
-  if (!wifimg.init()) {
+  if (!wifimg.init())
+  {
     renderer.drawConnectionError();
     goDeepSleep();
   }
@@ -72,9 +73,7 @@ void setup()
   Serial.println(tm.getFormattedDateTime());
   strcpy(deviceInformation.time_string, tm.getFormattedDateTime().c_str());
   deviceInformation.weekday = tm.getWeekday();
-  Serial.print("Check 1");
   profile = ghParser.getProfile();
-  Serial.print("Check 2");
   stats = ghParser.getStatistics(deviceInformation.weekday);
 
   // Draw the GitHub Dashboard
